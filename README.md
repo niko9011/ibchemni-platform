@@ -31,6 +31,7 @@ DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/ibchemni"
 SESSION_SECRET="replace-with-a-long-random-secret"
 TEACHER_EMAIL="ibchemistryni@163.com"
 TEACHER_PASSWORD="change-this-password"
+SETUP_TOKEN="replace-with-a-private-setup-token"
 ```
 
 4. Install dependencies:

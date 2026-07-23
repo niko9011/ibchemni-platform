@@ -26,23 +26,24 @@ DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@HOST:5432/ibchemni"
 SESSION_SECRET="一长串随机密码"
 TEACHER_EMAIL="ibchemistryni@163.com"
 TEACHER_PASSWORD="你的老师后台登录密码"
+SETUP_TOKEN="你自己设置的一串初始化密码"
 ```
 
 `SESSION_SECRET` 可以随便生成一长串，例如 32 位以上的随机英文数字。
 
 ## 上线后的初始化
 
-现在 build 命令会自动运行：
+现在 Vercel build 只负责部署网站。部署成功后，访问下面这个链接初始化数据库：
 
-```bash
-prisma db push
-tsx scripts/seed.ts
+```text
+https://你的后台网址/api/setup?token=你的SETUP_TOKEN
 ```
 
 作用：
 
-- `prisma db push` 创建数据库表
-- `seed.ts` 创建老师账号，并导入 22 个 SL / HL 章节课程
+- 创建数据库表
+- 创建老师账号
+- 导入 22 个 SL / HL 章节课程
 
 ## 老师怎么用
 
