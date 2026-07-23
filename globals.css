@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f7fbff;
+  color: #17304f;
+}
+
+.card {
+  border: 1px solid rgba(75, 156, 245, 0.18);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 55px rgba(57, 130, 220, 0.12);
+}
