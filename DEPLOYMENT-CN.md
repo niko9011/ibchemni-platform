@@ -22,6 +22,7 @@
 
 ```env
 DATABASE_URL="postgresql://USER:PASSWORD@HOST:5432/ibchemni"
+DATABASE_URL_UNPOOLED="postgresql://USER:PASSWORD@HOST:5432/ibchemni"
 SESSION_SECRET="一长串随机密码"
 TEACHER_EMAIL="ibchemistryni@163.com"
 TEACHER_PASSWORD="你的老师后台登录密码"
@@ -31,17 +32,17 @@ TEACHER_PASSWORD="你的老师后台登录密码"
 
 ## 上线后的初始化
 
-上线后需要运行：
+现在 build 命令会自动运行：
 
 ```bash
-npm run prisma:push
-npm run prisma:seed
+prisma db push
+tsx scripts/seed.ts
 ```
 
 作用：
 
-- `prisma:push` 创建数据库表
-- `prisma:seed` 创建老师账号，并导入 22 个 SL / HL 章节课程
+- `prisma db push` 创建数据库表
+- `seed.ts` 创建老师账号，并导入 22 个 SL / HL 章节课程
 
 ## 老师怎么用
 
