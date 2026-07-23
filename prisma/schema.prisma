@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+enum Role {
+  TEACHER
+  STUDENT
+}
+
+enum ResourceType {
+  VIDEO
+  BLANK_HANDOUT
+  COMPLETED_HANDOUT
+  CHECKPOINT_LIST
+  PAST_PAPER
+  CONDENSED_NOTES
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  role         Role         @default(STUDENT)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  enrollments  Enrollment[]
+  auditLogs    AuditLog[]
+}
+
+model Product {
+  id          String       @id
+  level       String
+  chapterNo   Int
+  title       String
+  priceCny    Int
+  description String
+  sections    Section[]
+  resources   Resource[]
+  enrollments Enrollment[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Section {
+  id        String     @id @default(cuid())
+  productId String
+  title     String
+  order     Int
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  resources Resource[]
+
+  @@unique([productId, order])
+}
+
+model Resource {
+  id          String       @id @default(cuid())
+  productId   String
+  sectionId   String?
+  type        ResourceType
+  title       String
+  storageKey  String?
+  vodFileId   String?
+  isPreview   Boolean      @default(false)
+  product     Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  section     Section?     @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  isActive  Boolean  @default(true)
+  note      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+}
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  action    String
+  target    String
+  note      String?
+  createdAt DateTime @default(now())
+  actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+}
