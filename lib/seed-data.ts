@@ -19,8 +19,10 @@ export async function seedTeacher(prisma: PrismaClient) {
   });
 }
 
-export async function seedProducts(prisma: PrismaClient, onlyLevel?: "SL" | "HL") {
+export async function seedProducts(prisma: PrismaClient, onlyLevel?: "SL" | "HL", onlyChapterNo?: number) {
   for (const [slug, chapterNo, title, slPrice] of chapterProducts) {
+    if (onlyChapterNo && chapterNo !== onlyChapterNo) continue;
+
     for (const level of ["SL", "HL"] as const) {
       if (onlyLevel && onlyLevel !== level) continue;
 

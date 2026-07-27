@@ -123,6 +123,8 @@ export async function GET(request: Request) {
   }
 
   const step = url.searchParams.get("step") || "all";
+  const levelParam = url.searchParams.get("level");
+  const chapterParam = url.searchParams.get("chapter");
   const prisma = new PrismaClient();
 
   try {
@@ -134,6 +136,17 @@ export async function GET(request: Request) {
 
     if (step === "teacher") {
       await seedTeacher(prisma);
+    } else if (step === "product") {
+      if (levelParam !== "SL" && levelParam !== "HL") {
+        return NextResponse.json({ ok: false, error: "Use level=SL or level=HL." }, { status: 400 });
+      }
+
+      const chapterNo = Number(chapterParam);
+      if (!Number.isInteger(chapterNo) || chapterNo < 1 || chapterNo > 11) {
+        return NextResponse.json({ ok: false, error: "Use chapter=1 to chapter=11." }, { status: 400 });
+      }
+
+      await seedProducts(prisma, levelParam, chapterNo);
     } else if (step === "products-sl") {
       await seedProducts(prisma, "SL");
     } else if (step === "products-hl") {
@@ -142,7 +155,7 @@ export async function GET(request: Request) {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, teacher, products-sl, products-hl, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, teacher, product, products-sl, products-hl, or all." },
         { status: 400 }
       );
     }
@@ -150,6 +163,8 @@ export async function GET(request: Request) {
     return NextResponse.json({
       ok: true,
       step,
+      level: levelParam,
+      chapter: chapterParam,
       message: `Setup step "${step}" completed.`
     });
   } catch (error) {
