@@ -3,18 +3,27 @@ import { PrismaClient, ResourceType } from "@prisma/client";
 import { chapterProducts, productId, sectionTitles } from "@/lib/products";
 
 export async function seedInitialData(prisma: PrismaClient) {
+  await seedTeacher(prisma);
+  await seedProducts(prisma);
+}
+
+export async function seedTeacher(prisma: PrismaClient) {
   const teacherEmail = process.env.TEACHER_EMAIL || "ibchemistryni@163.com";
   const teacherPassword = process.env.TEACHER_PASSWORD || "change-this-password";
-  const passwordHash = await bcrypt.hash(teacherPassword, 12);
+  const passwordHash = await bcrypt.hash(teacherPassword, 8);
 
   await prisma.user.upsert({
     where: { email: teacherEmail },
     update: { passwordHash, role: "TEACHER", name: "IB chem Ni" },
     create: { email: teacherEmail, passwordHash, role: "TEACHER", name: "IB chem Ni" }
   });
+}
 
+export async function seedProducts(prisma: PrismaClient, onlyLevel?: "SL" | "HL") {
   for (const [slug, chapterNo, title, slPrice] of chapterProducts) {
     for (const level of ["SL", "HL"] as const) {
+      if (onlyLevel && onlyLevel !== level) continue;
+
       const id = productId(level, slug);
       const priceCny = slPrice + (level === "HL" ? 500 : 0);
 

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { seedInitialData } from "@/lib/seed-data";
+import { seedInitialData, seedProducts, seedTeacher } from "@/lib/seed-data";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -116,23 +116,41 @@ const schemaStatements = [
 
 export async function GET(request: Request) {
   const setupToken = process.env.SETUP_TOKEN;
-  const token = new URL(request.url).searchParams.get("token");
+  const url = new URL(request.url);
+  const token = url.searchParams.get("token");
   if (!setupToken || token !== setupToken) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 
+  const step = url.searchParams.get("step") || "all";
   const prisma = new PrismaClient();
 
   try {
-    for (const statement of schemaStatements) {
-      await prisma.$executeRawUnsafe(statement);
+    if (step === "schema" || step === "all") {
+      for (const statement of schemaStatements) {
+        await prisma.$executeRawUnsafe(statement);
+      }
     }
 
-    await seedInitialData(prisma);
+    if (step === "teacher") {
+      await seedTeacher(prisma);
+    } else if (step === "products-sl") {
+      await seedProducts(prisma, "SL");
+    } else if (step === "products-hl") {
+      await seedProducts(prisma, "HL");
+    } else if (step === "all") {
+      await seedInitialData(prisma);
+    } else if (step !== "schema") {
+      return NextResponse.json(
+        { ok: false, error: "Unknown setup step. Use schema, teacher, products-sl, products-hl, or all." },
+        { status: 400 }
+      );
+    }
 
     return NextResponse.json({
       ok: true,
-      message: "Database initialized and courses seeded."
+      step,
+      message: `Setup step "${step}" completed.`
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown setup error";
