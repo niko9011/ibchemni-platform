@@ -9,7 +9,7 @@ export default async function AdminPage() {
   const teacher = await requireTeacher();
   if (!teacher) redirect("/login");
 
-  const [students, products, submissions, questions, freeResources, diagnosisRequests] = await Promise.all([
+  const [students, products, submissions, questions, diagnosisRequests] = await Promise.all([
     prisma.user.findMany({
       where: { role: "STUDENT" },
       orderBy: { createdAt: "desc" },
@@ -18,7 +18,6 @@ export default async function AdminPage() {
     prisma.product.findMany({ orderBy: [{ level: "asc" }, { chapterNo: "asc" }] }),
     prisma.questionSubmission.findMany({ orderBy: { createdAt: "desc" }, include: { student: true }, take: 20 }),
     prisma.question.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
-    prisma.freeResource.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
     prisma.diagnosisRequest.findMany({ orderBy: { createdAt: "desc" }, take: 20 })
   ]);
 
@@ -87,42 +86,6 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      <section id="resources" className="mt-10 grid gap-6 lg:grid-cols-2">
-        <div className="rounded-[2rem] card p-6">
-          <h2 className="text-2xl font-semibold text-ink">Publish Free Resource</h2>
-          <p className="mt-2 text-sm text-muted">Paste Tencent COS, Tencent VOD, or CDN links here.</p>
-          <form action="/api/admin/free-resources" method="post" className="mt-5 space-y-4">
-            <input name="title" placeholder="Resource title" required className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <select name="category" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
-              <option value="Notes">Notes</option>
-              <option value="Videos">Videos</option>
-            </select>
-            <select name="topic" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
-              <option value="">Choose topic, optional</option>
-              {chapterProducts.map(([, chapterNo, title]) => (
-                <option key={chapterNo} value={title}>{chapterNo}. {title}</option>
-              ))}
-            </select>
-            <input name="url" placeholder="File or video URL" required className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <textarea name="description" placeholder="Short description" required className="min-h-28 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <button className="w-full rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Publish resource</button>
-          </form>
-        </div>
-
-        <div className="rounded-[2rem] card p-6">
-          <h2 className="text-2xl font-semibold text-ink">Latest Free Resources</h2>
-          <div className="mt-5 space-y-3">
-            {freeResources.map((resource) => (
-              <div key={resource.id} className="rounded-2xl bg-soft p-4">
-                <p className="font-semibold text-ink">{resource.title}</p>
-                <p className="mt-1 text-sm text-muted">{resource.category} · {resource.topic || "General"}</p>
-              </div>
-            ))}
-            {freeResources.length === 0 ? <p className="text-muted">No free resources yet.</p> : null}
-          </div>
-        </div>
-      </section>
-
       <section id="questions" className="mt-10 grid gap-6 lg:grid-cols-2">
         <div className="rounded-[2rem] card p-6">
           <h2 className="text-2xl font-semibold text-ink">Publish Question Hub Answer</h2>
@@ -136,7 +99,8 @@ export default async function AdminPage() {
             </select>
             <textarea name="question" placeholder="Question" required className="min-h-24 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
             <textarea name="writtenAnswer" placeholder="Written answer" required className="min-h-32 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <input name="videoUrl" placeholder="Optional explanation video URL" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
+            <input name="imageUrl" placeholder="Tencent COS image URL, optional" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
+            <input name="videoUrl" placeholder="Tencent VOD/MP4 video URL, optional" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
             <button className="w-full rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Publish answer</button>
           </form>
         </div>

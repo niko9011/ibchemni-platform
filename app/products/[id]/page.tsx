@@ -27,19 +27,20 @@ export default async function ProductAccessPage({
   if (!hasAccess) redirect("/dashboard");
 
   return (
-    <main className="mx-auto max-w-7xl px-5 py-12">
+    <main className="mx-auto max-w-7xl px-5 py-8 sm:py-12">
+      <a href="/dashboard" className="mb-6 inline-flex min-h-11 items-center text-sm font-bold text-blue">← Back to dashboard</a>
       <p className="text-sm font-bold uppercase tracking-[0.18em] text-blue">{product.level} Chapter {product.chapterNo}</p>
-      <h1 className="mt-3 text-5xl font-semibold tracking-tight text-ink">{product.title}</h1>
+      <h1 className="mobile-title mt-3 text-5xl font-semibold tracking-tight text-ink">{product.title}</h1>
       <p className="mt-4 max-w-3xl leading-8 text-muted">{product.description}</p>
 
       <section className="mt-10 grid gap-5 md:grid-cols-2">
         {product.sections.map((section) => (
-          <div key={section.id} className="rounded-[2rem] card p-6">
+          <div key={section.id} className="mobile-card rounded-[2rem] card p-6">
             <p className="text-sm font-bold text-blue">Section {section.order}</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">{section.title}</h2>
             <div className="mt-5 space-y-3">
               {section.resources.map((resource) => (
-                <div key={resource.id} className="rounded-2xl bg-soft p-4">
+                <div key={resource.id} className="min-h-20 rounded-2xl bg-soft p-4">
                   <p className="font-semibold text-ink">{resource.title}</p>
                   <p className="mt-1 text-sm text-muted">{resource.type} · secure link will be connected later</p>
                 </div>
@@ -49,7 +50,7 @@ export default async function ProductAccessPage({
         ))}
       </section>
 
-      <section className="mt-10 rounded-[2rem] card p-6">
+      <section className="mobile-card mt-10 rounded-[2rem] card p-6">
         <h2 className="text-2xl font-semibold text-ink">Chapter Resources</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {product.resources.map((resource) => (

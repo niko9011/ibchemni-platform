@@ -11,12 +11,20 @@ export async function POST(request: Request) {
   const topic = String(formData.get("topic") || "").trim();
   const question = String(formData.get("question") || "").trim();
   const writtenAnswer = String(formData.get("writtenAnswer") || "").trim();
+  const imageUrl = String(formData.get("imageUrl") || "").trim();
   const videoUrl = String(formData.get("videoUrl") || "").trim();
 
   if (!title || !topic || !question || !writtenAnswer) return NextResponse.redirect(new URL("/admin", request.url), 303);
 
   await prisma.question.create({
-    data: { title, topic, question, writtenAnswer, videoUrl: videoUrl || null }
+    data: {
+      title,
+      topic,
+      question,
+      writtenAnswer,
+      imageUrl: imageUrl || null,
+      videoUrl: videoUrl || null
+    }
   });
 
   await prisma.auditLog.create({

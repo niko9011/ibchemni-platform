@@ -130,6 +130,7 @@ const schemaStatements = [
     "topic" TEXT NOT NULL,
     "question" TEXT NOT NULL,
     "writtenAnswer" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "videoUrl" TEXT,
     "relatedProductId" TEXT,
     "isPublished" BOOLEAN NOT NULL DEFAULT true,
@@ -175,6 +176,9 @@ const schemaStatements = [
 ];
 
 const contentStatements = schemaStatements.slice(-5);
+const questionMediaStatements = [
+  `ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT;`
+];
 
 export async function GET(request: Request) {
   const setupToken = process.env.SETUP_TOKEN;
@@ -202,6 +206,10 @@ export async function GET(request: Request) {
       for (const statement of contentStatements) {
         await prisma.$executeRawUnsafe(statement);
       }
+    } else if (step === "question-media") {
+      for (const statement of questionMediaStatements) {
+        await prisma.$executeRawUnsafe(statement);
+      }
     } else if (step === "product") {
       if (levelParam !== "SL" && levelParam !== "HL") {
         return NextResponse.json({ ok: false, error: "Use level=SL or level=HL." }, { status: 400 });
@@ -221,7 +229,7 @@ export async function GET(request: Request) {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, content, teacher, product, products-sl, products-hl, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, or all." },
         { status: 400 }
       );
     }

@@ -115,6 +115,7 @@ model Question {
   topic       String
   question    String
   writtenAnswer String
+  imageUrl    String?
   videoUrl    String?
   relatedProductId String?
   isPublished Boolean @default(true)

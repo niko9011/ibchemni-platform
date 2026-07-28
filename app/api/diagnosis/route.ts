@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   const studentName = String(formData.get("studentName") || "").trim();
   const email = String(formData.get("email") || "").toLowerCase().trim();
 
-  if (!studentName || !email) return NextResponse.redirect(new URL("/diagnosis", request.url), 303);
+  if (!studentName || !email) return NextResponse.redirect(new URL("/contact?error=missing#assessment", request.url), 303);
 
   await prisma.diagnosisRequest.create({
     data: {
@@ -25,5 +25,5 @@ export async function POST(request: Request) {
     }
   });
 
-  return NextResponse.redirect(new URL("/diagnosis?submitted=1", request.url), 303);
+  return NextResponse.redirect(new URL("/contact?submitted=1#assessment", request.url), 303);
 }
