@@ -1,6 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import TencentVodPlayer from "@/app/components/TencentVodPlayer";
 
 export const dynamic = "force-dynamic";
 
@@ -42,7 +43,13 @@ export default async function ProductAccessPage({
               {section.resources.map((resource) => (
                 <div key={resource.id} className="min-h-20 rounded-2xl bg-soft p-4">
                   <p className="font-semibold text-ink">{resource.title}</p>
-                  <p className="mt-1 text-sm text-muted">{resource.type} · secure link will be connected later</p>
+                  {resource.type === "VIDEO" && resource.vodFileId ? (
+                    <TencentVodPlayer resourceId={resource.id} title={resource.title} />
+                  ) : (
+                    <p className="mt-1 text-sm text-muted">
+                      {resource.type} · {resource.type === "VIDEO" ? "Video coming soon" : "Protected download coming soon"}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

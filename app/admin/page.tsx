@@ -5,11 +5,15 @@ import { chapterProducts } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminPage() {
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams?: { videoSaved?: string; videoError?: string };
+}) {
   const teacher = await requireTeacher();
   if (!teacher) redirect("/login");
 
-  const [students, products, submissions, questions, diagnosisRequests] = await Promise.all([
+  const [students, products, submissions, questions, diagnosisRequests, videoResources] = await Promise.all([
     prisma.user.findMany({
       where: { role: "STUDENT" },
       orderBy: { createdAt: "desc" },
@@ -18,7 +22,12 @@ export default async function AdminPage() {
     prisma.product.findMany({ orderBy: [{ level: "asc" }, { chapterNo: "asc" }] }),
     prisma.questionSubmission.findMany({ orderBy: { createdAt: "desc" }, include: { student: true }, take: 20 }),
     prisma.question.findMany({ orderBy: { createdAt: "desc" }, take: 10 }),
-    prisma.diagnosisRequest.findMany({ orderBy: { createdAt: "desc" }, take: 20 })
+    prisma.diagnosisRequest.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    prisma.resource.findMany({
+      where: { type: "VIDEO" },
+      include: { product: true, section: true },
+      orderBy: { title: "asc" }
+    })
   ]);
 
   return (
@@ -64,6 +73,41 @@ export default async function AdminPage() {
             <button name="action" value="grant" className="rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Open access</button>
             <button name="action" value="revoke" className="rounded-full border border-blue/20 bg-white px-5 py-3 text-sm font-bold text-muted">Close access</button>
           </form>
+        </div>
+      </section>
+
+      <section id="course-videos" className="mt-10 scroll-mt-24 rounded-[2rem] card p-6">
+        <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue">Tencent VOD</p>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">Connect a video to a course section</h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+          Upload the video to Tencent VOD first, then paste its numeric FileID here. Students still need login and chapter access to play it.
+        </p>
+        {searchParams?.videoSaved ? (
+          <p className="mt-5 rounded-2xl bg-green-50 p-4 text-sm font-semibold text-green-800">Video FileID saved.</p>
+        ) : null}
+        {searchParams?.videoError ? (
+          <p className="mt-5 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700">Choose a video lesson and enter a valid numeric FileID.</p>
+        ) : null}
+        <form action="/api/admin/resources/vod" method="post" className="mt-6 grid gap-4 md:grid-cols-[1fr_280px_auto]">
+          <select name="resourceId" required className="rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
+            <option value="">Choose course video lesson</option>
+            {videoResources.map((resource) => (
+              <option key={resource.id} value={resource.id}>
+                {resource.product.level} {resource.product.chapterNo}. {resource.product.title} · {resource.section?.title || "Chapter"} · {resource.title}
+              </option>
+            ))}
+          </select>
+          <input name="vodFileId" inputMode="numeric" placeholder="Tencent VOD FileID" required className="rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
+          <button className="min-h-12 rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Save video</button>
+        </form>
+        <div className="mt-6 grid gap-3 md:grid-cols-2">
+          {videoResources.filter((resource) => resource.vodFileId).map((resource) => (
+            <div key={resource.id} className="rounded-2xl bg-soft p-4">
+              <p className="text-sm font-bold text-blue">{resource.product.level} {resource.product.chapterNo} · {resource.section?.title}</p>
+              <p className="mt-2 font-semibold text-ink">{resource.title}</p>
+              <p className="mt-1 break-all text-xs text-muted">FileID: {resource.vodFileId}</p>
+            </div>
+          ))}
         </div>
       </section>
 
