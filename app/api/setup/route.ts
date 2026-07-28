@@ -111,8 +111,70 @@ const schemaStatements = [
     ALTER TABLE "AuditLog" ADD CONSTRAINT "AuditLog_actorId_fkey"
     FOREIGN KEY ("actorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
   EXCEPTION WHEN duplicate_object THEN null;
-  END $$;`
+  END $$;`,
+  `CREATE TABLE IF NOT EXISTS "FreeResource" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "topic" TEXT,
+    "url" TEXT NOT NULL,
+    "isPublished" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "FreeResource_pkey" PRIMARY KEY ("id")
+  );`,
+  `CREATE TABLE IF NOT EXISTS "Question" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "topic" TEXT NOT NULL,
+    "question" TEXT NOT NULL,
+    "writtenAnswer" TEXT NOT NULL,
+    "videoUrl" TEXT,
+    "relatedProductId" TEXT,
+    "isPublished" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "Question_pkey" PRIMARY KEY ("id")
+  );`,
+  `CREATE TABLE IF NOT EXISTS "QuestionSubmission" (
+    "id" TEXT NOT NULL,
+    "studentId" TEXT NOT NULL,
+    "topic" TEXT NOT NULL,
+    "question" TEXT NOT NULL,
+    "fileUrl" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'Pending',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "QuestionSubmission_pkey" PRIMARY KEY ("id")
+  );`,
+  `DO $$ BEGIN
+    ALTER TABLE "QuestionSubmission" ADD CONSTRAINT "QuestionSubmission_studentId_fkey"
+    FOREIGN KEY ("studentId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+  EXCEPTION WHEN duplicate_object THEN null;
+  END $$;`,
+  `CREATE TABLE IF NOT EXISTS "DiagnosisRequest" (
+    "id" TEXT NOT NULL,
+    "studentName" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "school" TEXT,
+    "gradeLevel" TEXT,
+    "courseLevel" TEXT,
+    "currentGrade" TEXT,
+    "targetGrade" TEXT,
+    "difficultTopics" TEXT,
+    "iaStatus" TEXT,
+    "examDate" TEXT,
+    "weeklyStudyTime" TEXT,
+    "message" TEXT,
+    "status" TEXT NOT NULL DEFAULT 'New',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    CONSTRAINT "DiagnosisRequest_pkey" PRIMARY KEY ("id")
+  );`
 ];
+
+const contentStatements = schemaStatements.slice(-5);
 
 export async function GET(request: Request) {
   const setupToken = process.env.SETUP_TOKEN;
@@ -136,6 +198,10 @@ export async function GET(request: Request) {
 
     if (step === "teacher") {
       await seedTeacher(prisma);
+    } else if (step === "content") {
+      for (const statement of contentStatements) {
+        await prisma.$executeRawUnsafe(statement);
+      }
     } else if (step === "product") {
       if (levelParam !== "SL" && levelParam !== "HL") {
         return NextResponse.json({ ok: false, error: "Use level=SL or level=HL." }, { status: 400 });
@@ -155,7 +221,7 @@ export async function GET(request: Request) {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, teacher, product, products-sl, products-hl, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, teacher, product, products-sl, products-hl, or all." },
         { status: 400 }
       );
     }

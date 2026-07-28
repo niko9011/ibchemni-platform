@@ -32,6 +32,7 @@ model User {
   updatedAt    DateTime     @updatedAt
   enrollments  Enrollment[]
   auditLogs    AuditLog[]
+  questions    QuestionSubmission[]
 }
 
 model Product {
@@ -94,4 +95,60 @@ model AuditLog {
   note      String?
   createdAt DateTime @default(now())
   actor     User     @relation(fields: [actorId], references: [id], onDelete: Cascade)
+}
+
+model FreeResource {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  category    String
+  topic       String?
+  url         String
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  title       String
+  topic       String
+  question    String
+  writtenAnswer String
+  videoUrl    String?
+  relatedProductId String?
+  isPublished Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QuestionSubmission {
+  id        String   @id @default(cuid())
+  studentId String
+  topic     String
+  question  String
+  fileUrl   String?
+  status    String   @default("Pending")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  student   User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+}
+
+model DiagnosisRequest {
+  id              String   @id @default(cuid())
+  studentName     String
+  email           String
+  school          String?
+  gradeLevel      String?
+  courseLevel     String?
+  currentGrade    String?
+  targetGrade     String?
+  difficultTopics String?
+  iaStatus        String?
+  examDate        String?
+  weeklyStudyTime String?
+  message         String?
+  status          String   @default("New")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
