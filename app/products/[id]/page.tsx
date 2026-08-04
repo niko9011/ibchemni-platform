@@ -40,7 +40,7 @@ export default async function ProductAccessPage({
             <p className="text-sm font-bold text-blue">Section {section.order}</p>
             <h2 className="mt-2 text-2xl font-semibold text-ink">{section.title}</h2>
             <div className="mt-5 space-y-3">
-              {section.resources.map((resource) => (
+              {[...section.resources].sort((a, b) => a.title.localeCompare(b.title, "en", { numeric: true })).map((resource) => (
                 <div key={resource.id} className="min-h-20 rounded-2xl bg-soft p-4">
                   <p className="font-semibold text-ink">{resource.title}</p>
                   {resource.type === "VIDEO" && resource.vodFileId ? (

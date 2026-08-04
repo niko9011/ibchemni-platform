@@ -19,6 +19,121 @@ export async function seedTeacher(prisma: PrismaClient) {
   });
 }
 
+const periodicTrendVideos = [
+  {
+    sectionOrder: 1,
+    title: "Lesson 2 · Periodic Trends of Atomic Radius",
+    vodFileId: "5001834813655939162"
+  },
+  {
+    sectionOrder: 2,
+    title: "Lesson 3 · First Ionization Energy",
+    vodFileId: "5001834813655687581"
+  },
+  {
+    sectionOrder: 3,
+    title: "Lesson 3 · Supplement",
+    vodFileId: "5001834813656052337"
+  }
+] as const;
+
+const transitionMetalVideos = [
+  ["Lesson 1 · Transition Metals", "5001834814491944537"],
+  ["Lesson 2 · Transition Metals", "5001834814493442184"],
+  ["Lesson 3 · Transition Metals", "5001834814490747146"],
+  ["Lesson 4 · Transition Metals", "5001834814492051032"],
+  ["Lesson 5 · Transition Metals", "5001834814490023126"]
+] as const;
+
+export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
+  await seedProducts(prisma, "SL", 4);
+  await seedProducts(prisma, "HL", 4);
+
+  for (const level of ["SL", "HL"] as const) {
+    const id = productId(level, "periodic-trends");
+    const sectionTitlesByOrder = ["Periodic Trends", "Ionization Energy", "Exam Practice", level === "HL" ? "HL Transition Metals" : "Additional Resources"];
+
+    const sections = await prisma.section.findMany({
+      where: { productId: id },
+      orderBy: { order: "asc" }
+    });
+
+    for (const section of sections) {
+      await prisma.section.update({
+        where: { id: section.id },
+        data: { title: sectionTitlesByOrder[section.order - 1] || section.title }
+      });
+    }
+
+    for (const video of periodicTrendVideos) {
+      const section = sections.find((item) => item.order === video.sectionOrder);
+      if (section) await upsertVodLesson(prisma, id, section.id, video.title, video.vodFileId);
+    }
+
+    if (level === "HL") {
+      const transitionSection = sections.find((item) => item.order === 4);
+      if (transitionSection) {
+        for (const [title, vodFileId] of transitionMetalVideos) {
+          await upsertVodLesson(prisma, id, transitionSection.id, title, vodFileId);
+        }
+      }
+    }
+  }
+}
+
+async function upsertVodLesson(
+  prisma: PrismaClient,
+  productIdValue: string,
+  sectionId: string,
+  title: string,
+  vodFileId: string
+) {
+  const existing = await prisma.resource.findFirst({
+    where: {
+      productId: productIdValue,
+      sectionId,
+      type: ResourceType.VIDEO,
+      OR: [{ vodFileId }, { title }]
+    }
+  });
+
+  if (existing) {
+    await prisma.resource.update({
+      where: { id: existing.id },
+      data: { title, vodFileId, isPreview: false }
+    });
+    return;
+  }
+
+  const placeholder = await prisma.resource.findFirst({
+    where: {
+      productId: productIdValue,
+      sectionId,
+      type: ResourceType.VIDEO,
+      vodFileId: null
+    }
+  });
+
+  if (placeholder) {
+    await prisma.resource.update({
+      where: { id: placeholder.id },
+      data: { title, vodFileId, isPreview: false }
+    });
+    return;
+  }
+
+  await prisma.resource.create({
+    data: {
+      productId: productIdValue,
+      sectionId,
+      type: ResourceType.VIDEO,
+      title,
+      vodFileId,
+      isPreview: false
+    }
+  });
+}
+
 export async function seedProducts(prisma: PrismaClient, onlyLevel?: "SL" | "HL", onlyChapterNo?: number) {
   for (const [slug, chapterNo, title, slPrice] of chapterProducts) {
     if (onlyChapterNo && chapterNo !== onlyChapterNo) continue;

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { seedInitialData, seedProducts, seedTeacher } from "@/lib/seed-data";
+import { seedInitialData, seedPeriodicTrendVideos, seedProducts, seedTeacher } from "@/lib/seed-data";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -225,11 +225,13 @@ export async function GET(request: Request) {
       await seedProducts(prisma, "SL");
     } else if (step === "products-hl") {
       await seedProducts(prisma, "HL");
+    } else if (step === "vod-periodic-trends") {
+      await seedPeriodicTrendVideos(prisma);
     } else if (step === "all") {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, or all." },
         { status: 400 }
       );
     }

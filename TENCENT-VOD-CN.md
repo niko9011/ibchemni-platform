@@ -53,3 +53,17 @@ TENCENT_VOD_ADAPTIVE_DEFINITION
 5. 点击 `Save video`。
 
 学生只有在登录并获得对应章节权限后才能获取一小时有效的播放签名。
+
+## 导入已上传的 Periodic Trends 视频
+
+部署本版本后，在浏览器打开下面的地址（把 `你的SETUP_TOKEN` 换成 Vercel 中的真实值）：
+
+```text
+https://ibchemistryni.com/api/setup?step=vod-periodic-trends&token=你的SETUP_TOKEN
+```
+
+看到 `"ok":true` 后即完成：
+
+- 3 个 Periodic Trends 视频会加入 SL 和 HL 的 Periodic Trends 课程。
+- 5 个 Transition Metals 视频只会加入 HL 的 Periodic Trends 课程。
+- 重复打开该地址不会重复创建视频。
