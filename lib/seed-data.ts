@@ -22,27 +22,39 @@ export async function seedTeacher(prisma: PrismaClient) {
 const periodicTrendVideos = [
   {
     sectionOrder: 1,
-    title: "Lesson 2 · Periodic Trends of Atomic Radius",
+    title: "04-HL-S3.1-V01-Introduction-to-Periodic-Trends",
+    vodFileId: "5001834813658987499"
+  },
+  {
+    sectionOrder: 1,
+    title: "04-HL-S3.1-V02-Atomic-Radius",
     vodFileId: "5001834813655939162"
   },
   {
     sectionOrder: 2,
-    title: "Lesson 3 · First Ionization Energy",
+    title: "04-HL-S3.1-V03-First-Ionization-Energy",
     vodFileId: "5001834813655687581"
   },
   {
-    sectionOrder: 3,
-    title: "Lesson 3 · Supplement",
+    sectionOrder: 2,
+    title: "04-HL-S3.1-V04-First-Ionization-Energy-Supplement",
     vodFileId: "5001834813656052337"
   }
 ] as const;
 
 const transitionMetalVideos = [
-  ["Lesson 1 · Transition Metals", "5001834814491944537"],
-  ["Lesson 2 · Transition Metals", "5001834814493442184"],
-  ["Lesson 3 · Transition Metals", "5001834814490747146"],
-  ["Lesson 4 · Transition Metals", "5001834814492051032"],
-  ["Lesson 5 · Transition Metals", "5001834814490023126"]
+  ["04-HL-S3.1-V05-Transition-Metals-Part-1", "5001834814491944537"],
+  ["04-HL-S3.1-V06-Transition-Metals-Part-2", "5001834814493442184"],
+  ["04-HL-S3.1-V07-Transition-Metals-Part-3", "5001834814490747146"],
+  ["04-HL-S3.1-V08-Transition-Metals-Part-4", "5001834814492051032"],
+  ["04-HL-S3.1-V09-Transition-Metals-Part-5", "5001834814490023126"]
+] as const;
+
+const hlPeriodicTrendChapterResources = [
+  [ResourceType.BLANK_HANDOUT, "04-HL-S3.1-R01-Student-Handout"],
+  [ResourceType.COMPLETED_HANDOUT, "04-HL-S3.1-R02-Completed-Handout"],
+  [ResourceType.PAST_PAPER, "04-HL-S3.1-R03-Past-Paper-Questions"],
+  [ResourceType.PAST_PAPER, "04-HL-S3.1-R04-Past-Paper-Mark-Scheme"]
 ] as const;
 
 export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
@@ -67,7 +79,8 @@ export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
 
     for (const video of periodicTrendVideos) {
       const section = sections.find((item) => item.order === video.sectionOrder);
-      if (section) await upsertVodLesson(prisma, id, section.id, video.title, video.vodFileId);
+      const levelTitle = video.title.replace("04-HL-", `04-${level}-`);
+      if (section) await upsertVodLesson(prisma, id, section.id, levelTitle, video.vodFileId);
     }
 
     if (level === "HL") {
@@ -78,6 +91,64 @@ export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
         }
       }
     }
+  }
+}
+
+export async function organizeHlPeriodicTrendContent(prisma: PrismaClient) {
+  await seedProducts(prisma, "HL", 4);
+
+  const id = productId("HL", "periodic-trends");
+  const sectionTitlesByOrder = [
+    "Periodic Trends",
+    "First Ionization Energy",
+    "IB Exam Practice",
+    "Transition Metals"
+  ];
+  const sections = await prisma.section.findMany({
+    where: { productId: id },
+    orderBy: { order: "asc" }
+  });
+
+  for (const section of sections) {
+    await prisma.section.update({
+      where: { id: section.id },
+      data: { title: sectionTitlesByOrder[section.order - 1] || section.title }
+    });
+  }
+
+  for (const video of periodicTrendVideos) {
+    const section = sections.find((item) => item.order === video.sectionOrder);
+    if (section) await upsertVodLesson(prisma, id, section.id, video.title, video.vodFileId);
+  }
+
+  const transitionSection = sections.find((item) => item.order === 4);
+  if (transitionSection) {
+    for (const [title, vodFileId] of transitionMetalVideos) {
+      await upsertVodLesson(prisma, id, transitionSection.id, title, vodFileId);
+    }
+  }
+
+  const keepVodFileIds = [
+    ...periodicTrendVideos.map((video) => video.vodFileId),
+    ...transitionMetalVideos.map((video) => video[1])
+  ];
+
+  // Remove generic placeholders and stale duplicates from this chapter only.
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: { not: null },
+      OR: [
+        { type: { not: ResourceType.VIDEO } },
+        { type: ResourceType.VIDEO, vodFileId: null },
+        { type: ResourceType.VIDEO, vodFileId: { notIn: keepVodFileIds } }
+      ]
+    }
+  });
+
+  await prisma.resource.deleteMany({ where: { productId: id, sectionId: null } });
+  for (const [type, title] of hlPeriodicTrendChapterResources) {
+    await prisma.resource.create({ data: { productId: id, type, title } });
   }
 }
 

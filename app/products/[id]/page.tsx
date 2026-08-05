@@ -60,7 +60,10 @@ export default async function ProductAccessPage({
       <section className="mobile-card mt-10 rounded-[2rem] card p-6">
         <h2 className="text-2xl font-semibold text-ink">Chapter Resources</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {product.resources.map((resource) => (
+          {product.resources
+            .filter((resource) => resource.sectionId === null)
+            .sort((a, b) => a.title.localeCompare(b.title, "en", { numeric: true }))
+            .map((resource) => (
             <div key={resource.id} className="rounded-2xl bg-soft p-4">
               <p className="font-semibold text-ink">{resource.title}</p>
               <p className="mt-1 text-sm text-muted">{resource.type} · protected download</p>
