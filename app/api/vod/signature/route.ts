@@ -5,11 +5,19 @@ import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-function contentInfo() {
-  const audioVideoType = process.env.TENCENT_VOD_AUDIO_VIDEO_TYPE || "Transcode";
+type PlaybackMode = "adaptive" | "transcode" | "original";
+
+function contentInfo(playbackMode?: PlaybackMode) {
+  const audioVideoType = playbackMode === "adaptive"
+    ? "RawAdaptive"
+    : playbackMode === "transcode"
+      ? "Transcode"
+      : playbackMode === "original"
+        ? "Original"
+        : process.env.TENCENT_VOD_AUDIO_VIDEO_TYPE || "RawAdaptive";
 
   if (audioVideoType === "RawAdaptive") {
-    const definition = Number(process.env.TENCENT_VOD_ADAPTIVE_DEFINITION);
+    const definition = Number(process.env.TENCENT_VOD_ADAPTIVE_DEFINITION || "10");
     if (!Number.isInteger(definition)) throw new Error("TENCENT_VOD_ADAPTIVE_DEFINITION is missing.");
     return { audioVideoType, rawAdaptiveDefinition: definition };
   }
@@ -27,7 +35,12 @@ export async function GET(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Please log in to play this video." }, { status: 401 });
 
-  const resourceId = new URL(request.url).searchParams.get("resourceId");
+  const searchParams = new URL(request.url).searchParams;
+  const resourceId = searchParams.get("resourceId");
+  const requestedPlayback = searchParams.get("playback");
+  const playbackMode = requestedPlayback === "adaptive" || requestedPlayback === "transcode" || requestedPlayback === "original"
+    ? requestedPlayback
+    : undefined;
   if (!resourceId) return NextResponse.json({ error: "Missing resource." }, { status: 400 });
 
   const resource = await prisma.resource.findUnique({
@@ -64,7 +77,7 @@ export async function GET(request: Request) {
   const psign = await new SignJWT({
     appId,
     fileId: resource.vodFileId,
-    contentInfo: contentInfo(),
+    contentInfo: contentInfo(playbackMode),
     currentTimeStamp: now,
     expireTimeStamp: expiresAt
   })
@@ -72,7 +85,7 @@ export async function GET(request: Request) {
     .sign(new TextEncoder().encode(playbackKey));
 
   return NextResponse.json(
-    { appId: appIdText, fileId: resource.vodFileId, psign },
+    { appId: appIdText, fileId: resource.vodFileId, psign, playbackMode: playbackMode || "configured" },
     { headers: { "Cache-Control": "private, no-store, max-age=0" } }
   );
 }

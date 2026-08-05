@@ -17,7 +17,10 @@ type SignatureResponse = {
   appId: string;
   fileId: string;
   psign: string;
+  playbackMode: string;
 };
+
+const PLAYBACK_MODES = ["adaptive", "transcode", "original"] as const;
 
 const PLAYER_SCRIPT_ID = "tencent-vod-player-sdk";
 const PLAYER_STYLE_ID = "tencent-vod-player-style";
@@ -67,6 +70,18 @@ function loadPlayerSdk() {
   return playerSdkPromise;
 }
 
+function describePlayerError(detail: unknown) {
+  if (typeof detail === "string") return detail;
+  if (!detail || typeof detail !== "object") return "Unknown Tencent VOD error";
+
+  const event = detail as Record<string, unknown>;
+  const data = event.data && typeof event.data === "object" ? event.data as Record<string, unknown> : {};
+  const code = event.code ?? event.errorCode ?? data.code ?? data.errorCode;
+  const message = event.message ?? event.errorMessage ?? data.message ?? data.errorMessage;
+  const parts = [code !== undefined ? `code ${String(code)}` : "", message ? String(message) : ""].filter(Boolean);
+  return parts.join(": ") || "Unknown Tencent VOD error";
+}
+
 export default function TencentVodPlayer({
   resourceId,
   title
@@ -79,6 +94,8 @@ export default function TencentVodPlayer({
   const hostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<TencentPlayer | null>(null);
   const timeoutRef = useRef<number | null>(null);
+  const attemptTokenRef = useRef(0);
+  const startPlaybackRef = useRef<(modeIndex?: number) => Promise<void>>(async () => undefined);
   const mountedRef = useRef(true);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState("");
@@ -90,14 +107,16 @@ export default function TencentVodPlayer({
     }
   }, []);
 
-  const startPlayback = useCallback(async () => {
+  const startPlayback = useCallback(async (modeIndex = 0) => {
+    const playbackMode = PLAYBACK_MODES[modeIndex] || PLAYBACK_MODES[0];
+    const attemptToken = ++attemptTokenRef.current;
     setError("");
     setStatus("loading");
     clearPlayerTimeout();
 
     try {
       const [response] = await Promise.all([
-        fetch(`/api/vod/signature?resourceId=${encodeURIComponent(resourceId)}`, {
+        fetch(`/api/vod/signature?resourceId=${encodeURIComponent(resourceId)}&playback=${playbackMode}`, {
           cache: "no-store"
         }),
         loadPlayerSdk()
@@ -135,23 +154,39 @@ export default function TencentVodPlayer({
       });
       playerRef.current = player;
 
+      let attemptFinished = false;
+      const failOrTryNext = (reason: string) => {
+        if (attemptFinished || attemptToken !== attemptTokenRef.current) return;
+        attemptFinished = true;
+        clearPlayerTimeout();
+
+        if (modeIndex < PLAYBACK_MODES.length - 1) {
+          setStatus("loading");
+          window.setTimeout(() => {
+            if (mountedRef.current) void startPlaybackRef.current(modeIndex + 1);
+          }, 300);
+          return;
+        }
+
+        setError(`Tencent VOD could not play this source (${reason}). Check the playback key and transcode result.`);
+        setStatus("error");
+      };
+
       const markReady = () => {
+        if (attemptToken !== attemptTokenRef.current) return;
         clearPlayerTimeout();
         if (mountedRef.current) setStatus("ready");
       };
       player.on?.("loadedmetadata", markReady);
       player.on?.("playing", markReady);
-      player.on?.("error", () => {
-        clearPlayerTimeout();
+      player.on?.("error", (detail) => {
         if (!mountedRef.current) return;
-        setError("Tencent VOD could not play this source. Confirm that transcoding finished, then try again.");
-        setStatus("error");
+        failOrTryNext(describePlayerError(detail));
       });
 
       timeoutRef.current = window.setTimeout(() => {
         if (!mountedRef.current) return;
-        setError("Tencent VOD did not return a playable stream. Please try again after checking the transcode result.");
-        setStatus("error");
+        failOrTryNext(`${playbackMode} timed out`);
       }, 20000);
     } catch (reason) {
       clearPlayerTimeout();
@@ -160,6 +195,8 @@ export default function TencentVodPlayer({
       setStatus("error");
     }
   }, [clearPlayerTimeout, playerId, resourceId, title]);
+
+  startPlaybackRef.current = startPlayback;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -178,7 +215,7 @@ export default function TencentVodPlayer({
       {status === "idle" ? (
         <button
           type="button"
-          onClick={startPlayback}
+          onClick={() => void startPlayback(0)}
           className="absolute inset-0 z-10 flex w-full items-center justify-center bg-ink px-5 text-white"
           aria-label={`Play ${title}`}
         >
@@ -200,7 +237,7 @@ export default function TencentVodPlayer({
       {status === "error" ? (
         <div className="absolute inset-0 z-20 flex flex-col items-start justify-center bg-ink p-5 text-sm leading-6 text-white">
           <p>{error}</p>
-          <button type="button" onClick={startPlayback} className="mt-4 rounded-full bg-blue px-4 py-2 font-bold">
+          <button type="button" onClick={() => void startPlayback(0)} className="mt-4 rounded-full bg-blue px-4 py-2 font-bold">
             Try again
           </button>
         </div>
