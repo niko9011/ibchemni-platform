@@ -68,7 +68,8 @@ export async function GET(request: Request) {
   const appIdText = process.env.TENCENT_VOD_APP_ID || "1459516471";
   const appId = Number(appIdText);
   const playbackKey = process.env.TENCENT_VOD_PLAYBACK_KEY;
-  if (!Number.isInteger(appId) || !playbackKey) {
+  const licenseUrl = process.env.TENCENT_VOD_LICENSE_URL || process.env.TENCENT_PLAYER_LICENSE_URL;
+  if (!Number.isInteger(appId) || !playbackKey || !licenseUrl) {
     return NextResponse.json({ error: "Video playback is not configured yet." }, { status: 503 });
   }
 
@@ -85,7 +86,7 @@ export async function GET(request: Request) {
     .sign(new TextEncoder().encode(playbackKey));
 
   return NextResponse.json(
-    { appId: appIdText, fileId: resource.vodFileId, psign, playbackMode: playbackMode || "configured" },
+    { appId: appIdText, fileId: resource.vodFileId, psign, licenseUrl, playbackMode: playbackMode || "configured" },
     { headers: { "Cache-Control": "private, no-store, max-age=0" } }
   );
 }

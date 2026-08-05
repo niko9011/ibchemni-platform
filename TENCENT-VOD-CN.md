@@ -21,6 +21,14 @@ TENCENT_VOD_PLAYBACK_KEY
 填写腾讯云“默认分发配置”中的播放密钥
 ```
 
+进入腾讯云点播控制台 → License 管理 → Web 端 License，免费申请基础版并绑定域名
+`ibchemistryni.com`。复制生成的 License URL（不是 License Key），添加：
+
+```text
+TENCENT_VOD_LICENSE_URL
+填写腾讯云生成的完整 License URL
+```
+
 测试原始视频时：
 
 ```text

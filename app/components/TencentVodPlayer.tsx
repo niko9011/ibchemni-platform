@@ -17,6 +17,7 @@ type SignatureResponse = {
   appId: string;
   fileId: string;
   psign: string;
+  licenseUrl: string;
   playbackMode: string;
 };
 
@@ -148,6 +149,7 @@ export default function TencentVodPlayer({
         appID: signature.appId,
         fileID: signature.fileId,
         psign: signature.psign,
+        licenseUrl: signature.licenseUrl,
         autoplay: false,
         language: "en",
         controls: true
