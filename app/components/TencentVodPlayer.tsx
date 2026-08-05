@@ -1,14 +1,15 @@
 "use client";
 
-import Script from "next/script";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
+
+type TencentPlayer = {
+  dispose?: () => void;
+  on?: (event: string, handler: (detail?: unknown) => void) => void;
+};
 
 declare global {
   interface Window {
-    TCPlayer?: (elementId: string, options: Record<string, unknown>) => {
-      dispose?: () => void;
-      on?: (event: string, handler: (detail?: unknown) => void) => void;
-    };
+    TCPlayer?: (elementId: string, options: Record<string, unknown>) => TencentPlayer;
   }
 }
 
@@ -17,6 +18,54 @@ type SignatureResponse = {
   fileId: string;
   psign: string;
 };
+
+const PLAYER_SCRIPT_ID = "tencent-vod-player-sdk";
+const PLAYER_STYLE_ID = "tencent-vod-player-style";
+const PLAYER_SCRIPT_URL = "https://tcsdk.com/player/tcplayer/release/v5.3.4/tcplayer.v5.3.4.min.js";
+const PLAYER_STYLE_URL = "https://tcsdk.com/player/tcplayer/release/v5.3.4/tcplayer.min.css";
+
+let playerSdkPromise: Promise<void> | null = null;
+
+function loadPlayerSdk() {
+  if (typeof window === "undefined") return Promise.reject(new Error("The video player is unavailable."));
+  if (window.TCPlayer) return Promise.resolve();
+  if (playerSdkPromise) return playerSdkPromise;
+
+  playerSdkPromise = new Promise<void>((resolve, reject) => {
+    if (!document.getElementById(PLAYER_STYLE_ID)) {
+      const stylesheet = document.createElement("link");
+      stylesheet.id = PLAYER_STYLE_ID;
+      stylesheet.rel = "stylesheet";
+      stylesheet.href = PLAYER_STYLE_URL;
+      document.head.appendChild(stylesheet);
+    }
+
+    let script = document.getElementById(PLAYER_SCRIPT_ID) as HTMLScriptElement | null;
+    const handleLoad = () => {
+      if (window.TCPlayer) resolve();
+      else reject(new Error("The Tencent VOD player did not initialize."));
+    };
+    const handleError = () => reject(new Error("The Tencent VOD player script could not load."));
+
+    if (!script) {
+      script = document.createElement("script");
+      script.id = PLAYER_SCRIPT_ID;
+      script.src = PLAYER_SCRIPT_URL;
+      script.async = true;
+      document.head.appendChild(script);
+    }
+
+    script.addEventListener("load", handleLoad, { once: true });
+    script.addEventListener("error", handleError, { once: true });
+
+    if (window.TCPlayer) handleLoad();
+  }).catch((reason) => {
+    playerSdkPromise = null;
+    throw reason;
+  });
+
+  return playerSdkPromise;
+}
 
 export default function TencentVodPlayer({
   resourceId,
@@ -27,45 +76,56 @@ export default function TencentVodPlayer({
 }) {
   const reactId = useId();
   const playerId = `vod-player-${reactId.replace(/:/g, "")}`;
-  const [activated, setActivated] = useState(false);
-  const [signature, setSignature] = useState<SignatureResponse | null>(null);
-  const [scriptReady, setScriptReady] = useState(false);
-  const [playerReady, setPlayerReady] = useState(false);
+  const hostRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<TencentPlayer | null>(null);
+  const timeoutRef = useRef<number | null>(null);
+  const mountedRef = useRef(true);
+  const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
   const [error, setError] = useState("");
 
-  const loadSignature = useCallback(async () => {
-    setError("");
-    const response = await fetch(`/api/vod/signature?resourceId=${encodeURIComponent(resourceId)}`, {
-      cache: "no-store"
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      throw new Error(body?.error || "Unable to authorize this video.");
+  const clearPlayerTimeout = useCallback(() => {
+    if (timeoutRef.current !== null) {
+      window.clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
     }
+  }, []);
 
-    setSignature(await response.json());
-  }, [resourceId]);
-
-  useEffect(() => {
-    if (!activated) return;
-    loadSignature().catch((reason) => {
-      setError(reason instanceof Error ? reason.message : "Unable to authorize this video.");
-    });
-  }, [activated, loadSignature]);
-
-  useEffect(() => {
-    if (!scriptReady || !signature || !window.TCPlayer) return;
-
-    let player: ReturnType<NonNullable<typeof window.TCPlayer>> | undefined;
-    const timeout = window.setTimeout(() => {
-      setError(
-        "Tencent VOD did not return a playable stream. Confirm that template 100040 finished successfully, then redeploy Vercel."
-      );
-    }, 15000);
+  const startPlayback = useCallback(async () => {
+    setError("");
+    setStatus("loading");
+    clearPlayerTimeout();
 
     try {
-      player = window.TCPlayer(playerId, {
+      const [response] = await Promise.all([
+        fetch(`/api/vod/signature?resourceId=${encodeURIComponent(resourceId)}`, {
+          cache: "no-store"
+        }),
+        loadPlayerSdk()
+      ]);
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        throw new Error(body?.error || "Unable to authorize this video.");
+      }
+
+      const signature = (await response.json()) as SignatureResponse;
+      if (!hostRef.current || !window.TCPlayer) {
+        throw new Error("The Tencent VOD player could not start.");
+      }
+
+      playerRef.current?.dispose?.();
+      hostRef.current.replaceChildren();
+
+      const video = document.createElement("video");
+      video.id = playerId;
+      video.className = "h-full w-full";
+      video.preload = "metadata";
+      video.setAttribute("playsinline", "");
+      video.setAttribute("webkit-playsinline", "");
+      video.setAttribute("aria-label", title);
+      hostRef.current.appendChild(video);
+
+      const player = window.TCPlayer(playerId, {
         appID: signature.appId,
         fileID: signature.fileId,
         psign: signature.psign,
@@ -73,76 +133,78 @@ export default function TencentVodPlayer({
         language: "en",
         controls: true
       });
-      player.on?.("loadedmetadata", () => {
-        window.clearTimeout(timeout);
-        setPlayerReady(true);
-      });
-      player.on?.("playing", () => {
-        window.clearTimeout(timeout);
-        setPlayerReady(true);
-      });
-      player.on?.("error", () => {
-        window.clearTimeout(timeout);
-        setError(
-          "Tencent VOD could not play this source. Transcode the MOV file to adaptive HLS or MP4 (H.264/AAC), then try again."
-        );
-      });
-    } catch {
-      window.clearTimeout(timeout);
-      setError("The Tencent VOD player could not start. Please refresh after deployment.");
-    }
+      playerRef.current = player;
 
+      const markReady = () => {
+        clearPlayerTimeout();
+        if (mountedRef.current) setStatus("ready");
+      };
+      player.on?.("loadedmetadata", markReady);
+      player.on?.("playing", markReady);
+      player.on?.("error", () => {
+        clearPlayerTimeout();
+        if (!mountedRef.current) return;
+        setError("Tencent VOD could not play this source. Confirm that transcoding finished, then try again.");
+        setStatus("error");
+      });
+
+      timeoutRef.current = window.setTimeout(() => {
+        if (!mountedRef.current) return;
+        setError("Tencent VOD did not return a playable stream. Please try again after checking the transcode result.");
+        setStatus("error");
+      }, 20000);
+    } catch (reason) {
+      clearPlayerTimeout();
+      if (!mountedRef.current) return;
+      setError(reason instanceof Error ? reason.message : "Unable to start this video.");
+      setStatus("error");
+    }
+  }, [clearPlayerTimeout, playerId, resourceId, title]);
+
+  useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      window.clearTimeout(timeout);
-      player?.dispose?.();
+      mountedRef.current = false;
+      clearPlayerTimeout();
+      playerRef.current?.dispose?.();
+      playerRef.current = null;
     };
-  }, [playerId, scriptReady, signature]);
+  }, [clearPlayerTimeout]);
 
   return (
-    <div className="mt-4 overflow-hidden rounded-2xl bg-ink">
-      <link
-        rel="stylesheet"
-        href="https://tcsdk.com/player/tcplayer/release/v5.3.4/tcplayer.min.css"
-      />
-      <Script
-        src="https://tcsdk.com/player/tcplayer/release/v5.3.4/tcplayer.v5.3.4.min.js"
-        strategy="afterInteractive"
-        onLoad={() => setScriptReady(true)}
-        onReady={() => setScriptReady(true)}
-        onError={() => setError("The Tencent VOD player script could not load. Please refresh and try again.")}
-      />
-      {!activated ? (
+    <div className="relative mt-4 aspect-video overflow-hidden rounded-2xl bg-ink">
+      <div ref={hostRef} className="absolute inset-0" />
+
+      {status === "idle" ? (
         <button
           type="button"
-          onClick={() => setActivated(true)}
-          className="flex aspect-video w-full items-center justify-center bg-ink px-5 text-white"
+          onClick={startPlayback}
+          className="absolute inset-0 z-10 flex w-full items-center justify-center bg-ink px-5 text-white"
           aria-label={`Play ${title}`}
         >
-          <span className="flex h-16 w-16 items-center justify-center rounded-full bg-blue text-2xl shadow-soft" aria-hidden="true">▶</span>
+          <span
+            className="flex h-16 w-16 items-center justify-center rounded-full bg-blue text-2xl shadow-soft"
+            aria-hidden="true"
+          >
+            ▶
+          </span>
         </button>
-      ) : error ? (
-        <div className="aspect-video p-5 text-sm leading-6 text-white">
+      ) : null}
+
+      {status === "loading" ? (
+        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-ink px-5 text-center text-sm text-white/80">
+          Loading secure video...
+        </div>
+      ) : null}
+
+      {status === "error" ? (
+        <div className="absolute inset-0 z-20 flex flex-col items-start justify-center bg-ink p-5 text-sm leading-6 text-white">
           <p>{error}</p>
-          <button type="button" onClick={() => { setPlayerReady(false); loadSignature().catch(() => undefined); }} className="mt-4 rounded-full bg-blue px-4 py-2 font-bold">
+          <button type="button" onClick={startPlayback} className="mt-4 rounded-full bg-blue px-4 py-2 font-bold">
             Try again
           </button>
         </div>
-      ) : (
-        <div className="relative aspect-video">
-          <video
-            id={playerId}
-            className="h-full w-full"
-            aria-label={title}
-            preload="metadata"
-            playsInline
-          />
-          {!playerReady ? (
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center px-5 text-center text-sm text-white/80">
-              Loading secure video...
-            </div>
-          ) : null}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 }
