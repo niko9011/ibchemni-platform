@@ -57,6 +57,46 @@ const hlPeriodicTrendChapterResources = [
   [ResourceType.PAST_PAPER, "04-HL-S3.1-R04-Past-Paper-Mark-Scheme"]
 ] as const;
 
+const hlS1Part1Videos = [
+  ["01-HL-S1PART1-V1-MASS-SPECTRUM", "5001834814778647107"],
+  ["01-HL-S1PART1-V2-CALCULATION", "5001834814777427496"],
+  ["01-HL-S1PART1-V3-SUCCESSIVE-IONIZATION-ENERGY", "5001834814777849024"],
+  ["01-HL-S1PART1-V4-DEVIATION-OF-1ST-IE", "5001834814777846587"]
+] as const;
+
+export async function seedHlS1Part1Videos(prisma: PrismaClient) {
+  await seedProducts(prisma, "HL", 1);
+
+  const id = productId("HL", "matter-and-atomic-structure");
+  const section = await prisma.section.findFirst({
+    where: { productId: id, order: 1 }
+  });
+
+  if (!section) throw new Error("HL S1 Part 1 section was not created.");
+
+  await prisma.section.update({
+    where: { id: section.id },
+    data: { title: "S1 Part 1 · Mass Spectrometry and Ionization Energy" }
+  });
+
+  for (const [title, vodFileId] of hlS1Part1Videos) {
+    await upsertVodLesson(prisma, id, section.id, title, vodFileId);
+  }
+
+  const keepVodFileIds = hlS1Part1Videos.map((video) => video[1]);
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: section.id,
+      type: ResourceType.VIDEO,
+      OR: [
+        { vodFileId: null },
+        { vodFileId: { notIn: [...keepVodFileIds] } }
+      ]
+    }
+  });
+}
+
 export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
   await seedProducts(prisma, "SL", 4);
   await seedProducts(prisma, "HL", 4);

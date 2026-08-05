@@ -2,6 +2,14 @@
 
 前两步如果已经成功，不需要重复。
 
+## 本次 HL S1 Part 1 视频导入
+
+上传 V28 新版并等待 Vercel 显示 Ready 后，只需打开一次：
+
+https://ibchemistryni.com/api/setup?step=vod-hl-s1-part1&token=你的SETUP_TOKEN
+
+看到 `"ok":true` 即完成。该步骤可以安全重复执行，不会重复创建视频，也不会影响其他章节。
+
 ## 本次 Question Hub 图片功能升级
 
 上传新版并等待 Vercel 显示 Ready 后，只需打开一次：

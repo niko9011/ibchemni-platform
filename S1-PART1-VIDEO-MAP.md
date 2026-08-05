@@ -1,0 +1,12 @@
+# HL S1 Part 1 视频映射
+
+| 顺序 | 网站与腾讯云统一名称 | Tencent VOD FileID |
+| --- | --- | --- |
+| 1 | 01-HL-S1PART1-V1-MASS-SPECTRUM | 5001834814778647107 |
+| 2 | 01-HL-S1PART1-V2-CALCULATION | 5001834814777427496 |
+| 3 | 01-HL-S1PART1-V3-SUCCESSIVE-IONIZATION-ENERGY | 5001834814777849024 |
+| 4 | 01-HL-S1PART1-V4-DEVIATION-OF-1ST-IE | 5001834814777846587 |
+
+课程页：`/products/hl-matter-and-atomic-structure`
+
+初始化步骤：`vod-hl-s1-part1`
