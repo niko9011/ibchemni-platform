@@ -6,7 +6,7 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 function contentInfo() {
-  const audioVideoType = process.env.TENCENT_VOD_AUDIO_VIDEO_TYPE || "Original";
+  const audioVideoType = process.env.TENCENT_VOD_AUDIO_VIDEO_TYPE || "Transcode";
 
   if (audioVideoType === "RawAdaptive") {
     const definition = Number(process.env.TENCENT_VOD_ADAPTIVE_DEFINITION);
@@ -15,7 +15,7 @@ function contentInfo() {
   }
 
   if (audioVideoType === "Transcode") {
-    const definition = Number(process.env.TENCENT_VOD_TRANSCODE_DEFINITION);
+    const definition = Number(process.env.TENCENT_VOD_TRANSCODE_DEFINITION || "100040");
     if (!Number.isInteger(definition)) throw new Error("TENCENT_VOD_TRANSCODE_DEFINITION is missing.");
     return { audioVideoType, transcodeDefinition: definition };
   }
