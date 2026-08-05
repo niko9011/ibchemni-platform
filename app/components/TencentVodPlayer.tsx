@@ -71,16 +71,21 @@ function loadPlayerSdk() {
   return playerSdkPromise;
 }
 
-function describePlayerError(detail: unknown) {
-  if (typeof detail === "string") return detail;
-  if (!detail || typeof detail !== "object") return "Unknown Tencent VOD error";
+function playerErrorDetails(detail: unknown) {
+  if (typeof detail === "string") return { code: "", description: detail };
+  if (!detail || typeof detail !== "object") {
+    return { code: "", description: "Unknown Tencent VOD error" };
+  }
 
   const event = detail as Record<string, unknown>;
   const data = event.data && typeof event.data === "object" ? event.data as Record<string, unknown> : {};
   const code = event.code ?? event.errorCode ?? data.code ?? data.errorCode;
   const message = event.message ?? event.errorMessage ?? data.message ?? data.errorMessage;
   const parts = [code !== undefined ? `code ${String(code)}` : "", message ? String(message) : ""].filter(Boolean);
-  return parts.join(": ") || "Unknown Tencent VOD error";
+  return {
+    code: code === undefined ? "" : String(code),
+    description: parts.join(": ") || "Unknown Tencent VOD error"
+  };
 }
 
 export default function TencentVodPlayer({
@@ -180,16 +185,36 @@ export default function TencentVodPlayer({
         if (mountedRef.current) setStatus("ready");
       };
       player.on?.("loadedmetadata", markReady);
+      player.on?.("loadeddata", markReady);
+      player.on?.("canplay", markReady);
       player.on?.("playing", markReady);
       player.on?.("error", (detail) => {
         if (!mountedRef.current) return;
-        failOrTryNext(describePlayerError(detail));
+        const playerError = playerErrorDetails(detail);
+
+        // TCPlayer also reports WebRTC state 1009 while it is waiting for
+        // buffered data. It is a recoverable status, not a playback failure.
+        if (playerError.code === "1009") {
+          setStatus("loading");
+          clearPlayerTimeout();
+          timeoutRef.current = window.setTimeout(() => {
+            if (mountedRef.current) failOrTryNext(`${playbackMode} remained buffered for 45 seconds`);
+          }, 45000);
+          return;
+        }
+
+        failOrTryNext(`${playbackMode}: ${playerError.description}`);
+      });
+
+      player.on?.("webrtcevent", (detail) => {
+        const playerEvent = playerErrorDetails(detail);
+        if (playerEvent.code === "1003" || playerEvent.code === "1010") markReady();
       });
 
       timeoutRef.current = window.setTimeout(() => {
         if (!mountedRef.current) return;
         failOrTryNext(`${playbackMode} timed out`);
-      }, 20000);
+      }, 45000);
     } catch (reason) {
       clearPlayerTimeout();
       if (!mountedRef.current) return;
