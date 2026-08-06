@@ -8,6 +8,13 @@ type UploadResource = {
   storageKey: string | null;
 };
 
+function readCosError(xml: string) {
+  const code = xml.match(/<Code>([^<]+)<\/Code>/)?.[1];
+  const message = xml.match(/<Message>([^<]+)<\/Message>/)?.[1];
+  const requestId = xml.match(/<RequestId>([^<]+)<\/RequestId>/)?.[1];
+  return [code, message, requestId ? `RequestId: ${requestId}` : ""].filter(Boolean).join(" · ");
+}
+
 export default function ResourceUploader({ resources }: { resources: UploadResource[] }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -36,7 +43,11 @@ export default function ResourceUploader({ resources }: { resources: UploadResou
         headers: { "Content-Type": "application/pdf" },
         body: file
       });
-      if (!uploadResponse.ok) throw new Error(`Tencent COS upload failed (${uploadResponse.status}).`);
+      if (!uploadResponse.ok) {
+        const responseBody = await uploadResponse.text();
+        const detail = readCosError(responseBody);
+        throw new Error(`Tencent COS upload failed (${uploadResponse.status})${detail ? `: ${detail}` : "."}`);
+      }
 
       const confirmResponse = await fetch("/api/admin/resources/cos-upload", {
         method: "POST",
@@ -72,4 +83,3 @@ export default function ResourceUploader({ resources }: { resources: UploadResou
     </form>
   );
 }
-
