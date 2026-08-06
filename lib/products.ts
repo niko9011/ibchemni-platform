@@ -14,6 +14,22 @@ export const chapterProducts = [
 
 export const sectionTitles = ["Concept Foundation", "Worked Examples", "IB Exam Practice", "Common Mistakes"] as const;
 
+const legacyChapterResourceTitles = new Set([
+  "Checkpoint List",
+  "Past Paper Questions",
+  "Condensed Notes"
+]);
+
+export function isLegacyPlaceholderResource(title: string) {
+  if (legacyChapterResourceTitles.has(title)) return true;
+
+  return sectionTitles.some((sectionTitle) =>
+    title === `${sectionTitle} Blank Handout` ||
+    title === `${sectionTitle} Completed Handout` ||
+    title === `${sectionTitle} Video`
+  );
+}
+
 export function productId(level: "SL" | "HL", slug: string) {
   return `${level.toLowerCase()}-${slug}`;
 }

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { requireTeacher } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { chapterProducts } from "@/lib/products";
+import { chapterProducts, isLegacyPlaceholderResource } from "@/lib/products";
 import ResourceUploader from "@/app/admin/ResourceUploader";
 
 export const dynamic = "force-dynamic";
@@ -35,6 +35,9 @@ export default async function AdminPage({
       orderBy: [{ productId: "asc" }, { title: "asc" }]
     })
   ]);
+
+  const visibleVideoResources = videoResources.filter((resource) => !isLegacyPlaceholderResource(resource.title));
+  const visiblePdfResources = pdfResources.filter((resource) => !isLegacyPlaceholderResource(resource.title));
 
   return (
     <main className="mx-auto max-w-7xl px-5 py-12">
@@ -88,16 +91,16 @@ export default async function AdminPage({
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
           Choose the matching resource card and PDF. The browser uploads directly to your private Tencent COS bucket; only students with chapter access receive a short-lived download link.
         </p>
-        <ResourceUploader resources={pdfResources.map((resource) => ({
+        <ResourceUploader resources={visiblePdfResources.map((resource) => ({
           id: resource.id,
           storageKey: resource.storageKey,
-          label: `${resource.product.level} ${resource.product.chapterNo}. ${resource.product.title} · ${resource.section?.title || "Chapter"} · ${resource.title}`
+          label: `${resource.product.level} ${resource.product.chapterNo}. ${resource.product.title} · ${resource.title}`
         }))} />
       </section>
 
       <section id="course-videos" className="mt-10 scroll-mt-24 rounded-[2rem] card p-6">
         <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue">Tencent VOD</p>
-        <h2 className="mt-2 text-2xl font-semibold text-ink">Connect a video to a course section</h2>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">Connect a video to a chapter</h2>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
           Upload the video to Tencent VOD first, then paste its numeric FileID here. Students still need login and chapter access to play it.
         </p>
@@ -110,9 +113,9 @@ export default async function AdminPage({
         <form action="/api/admin/resources/vod" method="post" className="mt-6 grid gap-4 md:grid-cols-[1fr_280px_auto]">
           <select name="resourceId" required className="rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
             <option value="">Choose course video lesson</option>
-            {videoResources.map((resource) => (
+            {visibleVideoResources.map((resource) => (
               <option key={resource.id} value={resource.id}>
-                {resource.product.level} {resource.product.chapterNo}. {resource.product.title} · {resource.section?.title || "Chapter"} · {resource.title}
+                {resource.product.level} {resource.product.chapterNo}. {resource.product.title} · {resource.title}
               </option>
             ))}
           </select>
@@ -120,9 +123,9 @@ export default async function AdminPage({
           <button className="min-h-12 rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Save video</button>
         </form>
         <div className="mt-6 grid gap-3 md:grid-cols-2">
-          {videoResources.filter((resource) => resource.vodFileId).map((resource) => (
+          {visibleVideoResources.filter((resource) => resource.vodFileId).map((resource) => (
             <div key={resource.id} className="rounded-2xl bg-soft p-4">
-              <p className="text-sm font-bold text-blue">{resource.product.level} {resource.product.chapterNo} · {resource.section?.title}</p>
+              <p className="text-sm font-bold text-blue">{resource.product.level} {resource.product.chapterNo} · {resource.product.title}</p>
               <p className="mt-2 font-semibold text-ink">{resource.title}</p>
               <p className="mt-1 break-all text-xs text-muted">FileID: {resource.vodFileId}</p>
             </div>

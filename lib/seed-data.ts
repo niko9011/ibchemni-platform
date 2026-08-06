@@ -295,20 +295,12 @@ export async function seedProducts(prisma: PrismaClient, onlyLevel?: "SL" | "HL"
       });
 
       for (const [index, sectionTitle] of sectionTitles.entries()) {
-        const section = await prisma.section.upsert({
+        await prisma.section.upsert({
           where: { productId_order: { productId: id, order: index + 1 } },
           update: { title: sectionTitle },
           create: { productId: id, order: index + 1, title: sectionTitle }
         });
-
-        await upsertSectionResource(prisma, id, section.id, ResourceType.VIDEO, `${sectionTitle} Video`, index === 0);
-        await upsertSectionResource(prisma, id, section.id, ResourceType.BLANK_HANDOUT, `${sectionTitle} Blank Handout`, false);
-        await upsertSectionResource(prisma, id, section.id, ResourceType.COMPLETED_HANDOUT, `${sectionTitle} Completed Handout`, false);
       }
-
-      await upsertChapterResource(prisma, id, ResourceType.CHECKPOINT_LIST, "Checkpoint List");
-      await upsertChapterResource(prisma, id, ResourceType.PAST_PAPER, "Past Paper Questions");
-      await upsertChapterResource(prisma, id, ResourceType.CONDENSED_NOTES, "Condensed Notes");
     }
   }
 }
@@ -328,13 +320,5 @@ async function upsertSectionResource(
   }
   await prisma.resource.create({
     data: { productId: productIdValue, sectionId, type, title, isPreview }
-  });
-}
-
-async function upsertChapterResource(prisma: PrismaClient, productIdValue: string, type: ResourceType, title: string) {
-  const existing = await prisma.resource.findFirst({ where: { productId: productIdValue, sectionId: null, type, title } });
-  if (existing) return;
-  await prisma.resource.create({
-    data: { productId: productIdValue, type, title }
   });
 }

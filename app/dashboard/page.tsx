@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { isLegacyPlaceholderResource } from "@/lib/products";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,6 @@ export default async function DashboardPage() {
     orderBy: [{ level: "asc" }, { chapterNo: "asc" }],
     include: {
       enrollments: { where: { userId: user.id, isActive: true } },
-      sections: { orderBy: { order: "asc" } },
       resources: true
     }
   });
@@ -41,7 +41,9 @@ export default async function DashboardPage() {
             <a key={product.id} href={`/products/${product.id}`} className="mobile-card block min-h-40 rounded-[2rem] card p-6 transition hover:-translate-y-1 active:scale-[0.99]">
               <p className="text-sm font-bold text-blue">{product.level} Chapter {product.chapterNo}</p>
               <h3 className="mt-3 text-2xl font-semibold text-ink">{product.title}</h3>
-              <p className="mt-4 text-sm leading-6 text-muted">{product.sections.length} sections · {product.resources.length} resources</p>
+              <p className="mt-4 text-sm leading-6 text-muted">
+                {product.resources.filter((resource) => !isLegacyPlaceholderResource(resource.title)).length} chapter items
+              </p>
               <p className="mt-5 text-sm font-bold text-blue">Open chapter →</p>
             </a>
           ))}
