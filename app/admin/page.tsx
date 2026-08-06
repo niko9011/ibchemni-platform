@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { requireTeacher } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { chapterProducts } from "@/lib/products";
+import ResourceUploader from "@/app/admin/ResourceUploader";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +14,7 @@ export default async function AdminPage({
   const teacher = await requireTeacher();
   if (!teacher) redirect("/login");
 
-  const [students, products, submissions, questions, diagnosisRequests, videoResources] = await Promise.all([
+  const [students, products, submissions, questions, diagnosisRequests, videoResources, pdfResources] = await Promise.all([
     prisma.user.findMany({
       where: { role: "STUDENT" },
       orderBy: { createdAt: "desc" },
@@ -27,6 +28,11 @@ export default async function AdminPage({
       where: { type: "VIDEO" },
       include: { product: true, section: true },
       orderBy: { title: "asc" }
+    }),
+    prisma.resource.findMany({
+      where: { type: { not: "VIDEO" } },
+      include: { product: true, section: true },
+      orderBy: [{ productId: "asc" }, { title: "asc" }]
     })
   ]);
 
@@ -74,6 +80,19 @@ export default async function AdminPage({
             <button name="action" value="revoke" className="rounded-full border border-blue/20 bg-white px-5 py-3 text-sm font-bold text-muted">Close access</button>
           </form>
         </div>
+      </section>
+
+      <section id="course-pdfs" className="mt-10 scroll-mt-24 rounded-[2rem] card p-6">
+        <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue">Tencent COS</p>
+        <h2 className="mt-2 text-2xl font-semibold text-ink">Upload protected course PDFs</h2>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
+          Choose the matching resource card and PDF. The browser uploads directly to your private Tencent COS bucket; only students with chapter access receive a short-lived download link.
+        </p>
+        <ResourceUploader resources={pdfResources.map((resource) => ({
+          id: resource.id,
+          storageKey: resource.storageKey,
+          label: `${resource.product.level} ${resource.product.chapterNo}. ${resource.product.title} · ${resource.section?.title || "Chapter"} · ${resource.title}`
+        }))} />
       </section>
 
       <section id="course-videos" className="mt-10 scroll-mt-24 rounded-[2rem] card p-6">

@@ -1,5 +1,7 @@
 # IB chem Ni Platform App
 
+Protected PDF setup: see `PROTECTED-PDF-SETUP-CN.md`.
+
 This is the real login and manual access version of the IB chem Ni learning platform.
 
 ## What This Version Does

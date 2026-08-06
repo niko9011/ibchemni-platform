@@ -236,13 +236,13 @@ export async function GET(request: Request) {
       await seedPeriodicTrendVideos(prisma);
     } else if (step === "organize-hl-s31") {
       await organizeHlPeriodicTrendContent(prisma);
-    } else if (step === "vod-hl-s1-part1") {
+    } else if (step === "vod-hl-s1-part1" || step === "hl-s1-part1-resources") {
       await seedHlS1Part1Videos(prisma);
     } else if (step === "all") {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, vod-hl-s1-part1, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, vod-hl-s1-part1, hl-s1-part1-resources, or all." },
         { status: 400 }
       );
     }

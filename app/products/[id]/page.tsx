@@ -46,9 +46,16 @@ export default async function ProductAccessPage({
                   {resource.type === "VIDEO" && resource.vodFileId ? (
                     <TencentVodPlayer resourceId={resource.id} title={resource.title} />
                   ) : (
-                    <p className="mt-1 text-sm text-muted">
-                      {resource.type} · {resource.type === "VIDEO" ? "Video coming soon" : "Protected download coming soon"}
-                    </p>
+                    <>
+                      <p className="mt-1 text-sm text-muted">
+                        {resource.type} · {resource.type === "VIDEO" ? "Video coming soon" : resource.storageKey ? "Protected PDF" : "PDF coming soon"}
+                      </p>
+                      {resource.type !== "VIDEO" && resource.storageKey ? (
+                        <a href={`/api/resources/${resource.id}/download`} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-sm font-bold text-white">
+                          Open PDF
+                        </a>
+                      ) : null}
+                    </>
                   )}
                 </div>
               ))}
@@ -66,7 +73,12 @@ export default async function ProductAccessPage({
             .map((resource) => (
             <div key={resource.id} className="rounded-2xl bg-soft p-4">
               <p className="font-semibold text-ink">{resource.title}</p>
-              <p className="mt-1 text-sm text-muted">{resource.type} · protected download</p>
+              <p className="mt-1 text-sm text-muted">{resource.type} · {resource.storageKey ? "Protected PDF" : "PDF coming soon"}</p>
+              {resource.storageKey ? (
+                <a href={`/api/resources/${resource.id}/download`} target="_blank" rel="noreferrer" className="mt-3 inline-flex min-h-11 items-center rounded-full bg-blue px-5 text-sm font-bold text-white">
+                  Open PDF
+                </a>
+              ) : null}
             </div>
           ))}
         </div>

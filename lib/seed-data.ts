@@ -64,6 +64,13 @@ const hlS1Part1Videos = [
   ["01-HL-S1PART1-V4-DEVIATION-OF-1ST-IE", "5001834814777846587"]
 ] as const;
 
+const hlS1Part1Resources = [
+  [ResourceType.PAST_PAPER, "01-HL-S1PART1-R01-Past-Paper-Questions"],
+  [ResourceType.PAST_PAPER, "01-HL-S1PART1-R02-Past-Paper-Mark-Scheme"],
+  [ResourceType.BLANK_HANDOUT, "01-HL-S1PART1-R03-Student-Handout"],
+  [ResourceType.COMPLETED_HANDOUT, "01-HL-S1PART1-R04-Completed-Handout"]
+] as const;
+
 export async function seedHlS1Part1Videos(prisma: PrismaClient) {
   await seedProducts(prisma, "HL", 1);
 
@@ -95,6 +102,19 @@ export async function seedHlS1Part1Videos(prisma: PrismaClient) {
       ]
     }
   });
+
+  const keepResourceTitles = hlS1Part1Resources.map((resource) => resource[1]);
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: section.id,
+      type: { not: ResourceType.VIDEO },
+      title: { notIn: [...keepResourceTitles] }
+    }
+  });
+  for (const [type, title] of hlS1Part1Resources) {
+    await upsertSectionResource(prisma, id, section.id, type, title, false);
+  }
 }
 
 export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
