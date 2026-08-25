@@ -234,7 +234,7 @@ export async function GET(request: Request) {
       await seedProducts(prisma, "HL");
     } else if (step === "vod-periodic-trends") {
       await seedPeriodicTrendVideos(prisma);
-    } else if (step === "organize-hl-s31") {
+    } else if (step === "organize-hl-s31" || step === "hl-s31-resources") {
       await organizeHlPeriodicTrendContent(prisma);
     } else if (step === "vod-hl-s1-part1" || step === "hl-s1-part1-resources") {
       await seedHlS1Part1Videos(prisma);
@@ -242,7 +242,7 @@ export async function GET(request: Request) {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, vod-hl-s1-part1, hl-s1-part1-resources, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, hl-s31-resources, vod-hl-s1-part1, hl-s1-part1-resources, or all." },
         { status: 400 }
       );
     }

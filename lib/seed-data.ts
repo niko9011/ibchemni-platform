@@ -51,11 +51,45 @@ const transitionMetalVideos = [
 ] as const;
 
 const hlPeriodicTrendChapterResources = [
-  [ResourceType.BLANK_HANDOUT, "04-HL-S3.1-R01-Student-Handout"],
-  [ResourceType.COMPLETED_HANDOUT, "04-HL-S3.1-R02-Completed-Handout"],
-  [ResourceType.PAST_PAPER, "04-HL-S3.1-R03-Past-Paper-Questions"],
-  [ResourceType.PAST_PAPER, "04-HL-S3.1-R04-Past-Paper-Mark-Scheme"]
+  [ResourceType.PAST_PAPER, "04-HL-S3.1-R01-Past-Paper-Questions"],
+  [ResourceType.PAST_PAPER, "04-HL-S3.1-R02-Past-Paper-Mark-Scheme"],
+  [ResourceType.BLANK_HANDOUT, "04-HL-S3.1-R03-Student-Handout"],
+  [ResourceType.COMPLETED_HANDOUT, "04-HL-S3.1-R04-Completed-Handout"]
 ] as const;
+
+const hlPeriodicTrendResourceAliases = [
+  {
+    type: ResourceType.PAST_PAPER,
+    title: "04-HL-S3.1-R01-Past-Paper-Questions",
+    aliases: ["04-HL-S3.1-R03-Past-Paper-Questions", "Past Paper Questions"]
+  },
+  {
+    type: ResourceType.PAST_PAPER,
+    title: "04-HL-S3.1-R02-Past-Paper-Mark-Scheme",
+    aliases: ["04-HL-S3.1-R04-Past-Paper-Mark-Scheme"]
+  },
+  {
+    type: ResourceType.BLANK_HANDOUT,
+    title: "04-HL-S3.1-R03-Student-Handout",
+    aliases: ["04-HL-S3.1-R01-Student-Handout"]
+  },
+  {
+    type: ResourceType.COMPLETED_HANDOUT,
+    title: "04-HL-S3.1-R04-Completed-Handout",
+    aliases: ["04-HL-S3.1-R02-Completed-Handout"]
+  }
+] as const;
+
+const legacySectionResourceTitles = [
+  "Checkpoint List",
+  "Past Paper Questions",
+  "Condensed Notes",
+  ...sectionTitles.flatMap((sectionTitle) => [
+    `${sectionTitle} Blank Handout`,
+    `${sectionTitle} Completed Handout`,
+    `${sectionTitle} Video`
+  ])
+];
 
 const hlS1Part1Videos = [
   ["01-HL-S1PART1-V1-MASS-SPECTRUM", "5001834814778647107"],
@@ -152,18 +186,19 @@ export async function seedPeriodicTrendVideos(prisma: PrismaClient) {
       }
     }
   }
+
+  await organizeHlPeriodicTrendContent(prisma);
 }
 
 export async function organizeHlPeriodicTrendContent(prisma: PrismaClient) {
   await seedProducts(prisma, "HL", 4);
 
   const id = productId("HL", "periodic-trends");
-  const sectionTitlesByOrder = [
-    "Periodic Trends",
-    "First Ionization Energy",
-    "IB Exam Practice",
-    "Transition Metals"
+  const chapterVideos = [
+    ...periodicTrendVideos.map((video) => [video.title, video.vodFileId] as const),
+    ...transitionMetalVideos
   ];
+  const keepVodFileIds = chapterVideos.map((video) => video[1]);
   const sections = await prisma.section.findMany({
     where: { productId: id },
     orderBy: { order: "asc" }
@@ -172,50 +207,91 @@ export async function organizeHlPeriodicTrendContent(prisma: PrismaClient) {
   for (const section of sections) {
     await prisma.section.update({
       where: { id: section.id },
-      data: { title: sectionTitlesByOrder[section.order - 1] || section.title }
+      data: { title: section.order === 1 ? "Chapter Content" : `Archive ${section.order}` }
     });
   }
 
-  for (const video of periodicTrendVideos) {
-    const section = sections.find((item) => item.order === video.sectionOrder);
-    if (section) await upsertVodLesson(prisma, id, section.id, video.title, video.vodFileId);
+  for (const [title, vodFileId] of chapterVideos) {
+    await upsertVodLesson(prisma, id, null, title, vodFileId);
   }
 
-  const transitionSection = sections.find((item) => item.order === 4);
-  if (transitionSection) {
-    for (const [title, vodFileId] of transitionMetalVideos) {
-      await upsertVodLesson(prisma, id, transitionSection.id, title, vodFileId);
+  for (const resource of hlPeriodicTrendResourceAliases) {
+    await prisma.resource.updateMany({
+      where: {
+        productId: id,
+        type: resource.type,
+        title: { in: [...resource.aliases] }
+      },
+      data: {
+        title: resource.title,
+        sectionId: null,
+        isPreview: false
+      }
+    });
+
+    const matching = await prisma.resource.findMany({
+      where: {
+        productId: id,
+        sectionId: null,
+        type: resource.type,
+        title: resource.title
+      },
+      orderBy: { id: "asc" }
+    });
+    const keep = matching.find((item) => item.storageKey || item.vodFileId) || matching[0];
+
+    if (keep) {
+      await prisma.resource.deleteMany({
+        where: {
+          productId: id,
+          sectionId: null,
+          type: resource.type,
+          title: resource.title,
+          id: { not: keep.id },
+          storageKey: null,
+          vodFileId: null
+        }
+      });
     }
   }
 
-  const keepVodFileIds = [
-    ...periodicTrendVideos.map((video) => video.vodFileId),
-    ...transitionMetalVideos.map((video) => video[1])
-  ];
-
-  // Remove generic placeholders and stale duplicates from this chapter only.
+  // Flatten HL S3.1 into one numbered chapter list and remove every old section item.
   await prisma.resource.deleteMany({
     where: {
       productId: id,
-      sectionId: { not: null },
+      sectionId: { not: null }
+    }
+  });
+
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: null,
+      type: ResourceType.VIDEO,
       OR: [
-        { type: { not: ResourceType.VIDEO } },
-        { type: ResourceType.VIDEO, vodFileId: null },
-        { type: ResourceType.VIDEO, vodFileId: { notIn: keepVodFileIds } }
+        { vodFileId: null },
+        { vodFileId: { notIn: [...keepVodFileIds] } }
       ]
     }
   });
 
-  await prisma.resource.deleteMany({ where: { productId: id, sectionId: null } });
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: null,
+      title: { in: [...legacySectionResourceTitles] }
+    }
+  });
+
   for (const [type, title] of hlPeriodicTrendChapterResources) {
-    await prisma.resource.create({ data: { productId: id, type, title } });
+    await upsertChapterResource(prisma, id, type, title);
   }
 }
 
 async function upsertVodLesson(
   prisma: PrismaClient,
   productIdValue: string,
-  sectionId: string,
+  sectionId: string | null,
   title: string,
   vodFileId: string
 ) {
@@ -231,7 +307,7 @@ async function upsertVodLesson(
   if (existing) {
     await prisma.resource.update({
       where: { id: existing.id },
-      data: { title, vodFileId, isPreview: false }
+      data: { sectionId, title, vodFileId, isPreview: false }
     });
     return;
   }
@@ -248,7 +324,7 @@ async function upsertVodLesson(
   if (placeholder) {
     await prisma.resource.update({
       where: { id: placeholder.id },
-      data: { title, vodFileId, isPreview: false }
+      data: { sectionId, title, vodFileId, isPreview: false }
     });
     return;
   }
@@ -262,6 +338,27 @@ async function upsertVodLesson(
       vodFileId,
       isPreview: false
     }
+  });
+}
+
+async function upsertChapterResource(
+  prisma: PrismaClient,
+  productIdValue: string,
+  type: ResourceType,
+  title: string
+) {
+  const existing = await prisma.resource.findFirst({
+    where: { productId: productIdValue, sectionId: null, type, title },
+    orderBy: { id: "asc" }
+  });
+
+  if (existing) {
+    await prisma.resource.update({ where: { id: existing.id }, data: { isPreview: false } });
+    return;
+  }
+
+  await prisma.resource.create({
+    data: { productId: productIdValue, type, title, isPreview: false }
   });
 }
 
