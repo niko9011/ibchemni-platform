@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import {
   organizeHlPeriodicTrendContent,
+  organizeHlS2Content,
   seedHlS1Part1Videos,
   seedInitialData,
   seedPeriodicTrendVideos,
@@ -238,11 +239,13 @@ export async function GET(request: Request) {
       await organizeHlPeriodicTrendContent(prisma);
     } else if (step === "vod-hl-s1-part1" || step === "hl-s1-part1-resources") {
       await seedHlS1Part1Videos(prisma);
+    } else if (step === "organize-hl-s2" || step === "hl-s2-resources") {
+      await organizeHlS2Content(prisma);
     } else if (step === "all") {
       await seedInitialData(prisma);
     } else if (step !== "schema") {
       return NextResponse.json(
-        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, hl-s31-resources, vod-hl-s1-part1, hl-s1-part1-resources, or all." },
+        { ok: false, error: "Unknown setup step. Use schema, content, question-media, teacher, product, products-sl, products-hl, vod-periodic-trends, organize-hl-s31, hl-s31-resources, vod-hl-s1-part1, hl-s1-part1-resources, organize-hl-s2, hl-s2-resources, or all." },
         { status: 400 }
       );
     }

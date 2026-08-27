@@ -81,3 +81,10 @@ https://ibchemni-platform.vercel.app/api/setup?token=你的SETUP_TOKEN&step=prod
 https://ibchemni-platform.vercel.app/api/setup?token=你的SETUP_TOKEN&step=product&level=HL&chapter=10
 
 https://ibchemni-platform.vercel.app/api/setup?token=你的SETUP_TOKEN&step=product&level=HL&chapter=11
+# HL S2 资料结构
+
+```text
+https://ibchemistryni.com/api/setup?token=你的SETUP_TOKEN&step=hl-s2-resources
+```
+
+这个步骤会把 HL 第 3 章 Chemical Bonding 整理成一个平铺清单，加入 `03-HL-S2-R01` 到 `R04` 四个 PDF 上传位，并保留已经绑定 FileID 的真实视频。

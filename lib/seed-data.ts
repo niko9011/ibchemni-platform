@@ -105,6 +105,44 @@ const hlS1Part1Resources = [
   [ResourceType.COMPLETED_HANDOUT, "01-HL-S1PART1-R04-Completed-Handout"]
 ] as const;
 
+const hlS2ChapterResources = [
+  [ResourceType.PAST_PAPER, "03-HL-S2-R01-Past-Paper-Questions"],
+  [ResourceType.PAST_PAPER, "03-HL-S2-R02-Past-Paper-Mark-Scheme"],
+  [ResourceType.BLANK_HANDOUT, "03-HL-S2-R03-Student-Handout"],
+  [ResourceType.COMPLETED_HANDOUT, "03-HL-S2-R04-Completed-Handout"]
+] as const;
+
+const hlS2Videos = [
+  ["03-HL-S2-V1-EXPANDED-OCTET", "5001834817386048325"],
+  ["03-HL-S2-V2-FORMAL-CHARGE", "5001834817351050026"],
+  ["03-HL-S2-V3-HYBRIZATION-SIGMA-PI-BOND", "5001834817352374006"],
+  ["03-HL-S2-V4-RESONANCE-AND-DELOCALIZATION", "5001834817352859675"],
+  ["03-HL-S2-V5-BENZENE-STRUCTURE", "5001834817352366267"]
+] as const;
+
+const hlS2ResourceAliases = [
+  {
+    type: ResourceType.PAST_PAPER,
+    title: "03-HL-S2-R01-Past-Paper-Questions",
+    aliases: ["Past Paper Questions"]
+  },
+  {
+    type: ResourceType.PAST_PAPER,
+    title: "03-HL-S2-R02-Past-Paper-Mark-Scheme",
+    aliases: ["Past Paper Mark Scheme"]
+  },
+  {
+    type: ResourceType.BLANK_HANDOUT,
+    title: "03-HL-S2-R03-Student-Handout",
+    aliases: sectionTitles.map((sectionTitle) => `${sectionTitle} Blank Handout`)
+  },
+  {
+    type: ResourceType.COMPLETED_HANDOUT,
+    title: "03-HL-S2-R04-Completed-Handout",
+    aliases: sectionTitles.map((sectionTitle) => `${sectionTitle} Completed Handout`)
+  }
+] as const;
+
 export async function seedHlS1Part1Videos(prisma: PrismaClient) {
   await seedProducts(prisma, "HL", 1);
 
@@ -148,6 +186,77 @@ export async function seedHlS1Part1Videos(prisma: PrismaClient) {
   });
   for (const [type, title] of hlS1Part1Resources) {
     await upsertSectionResource(prisma, id, section.id, type, title, false);
+  }
+}
+
+export async function organizeHlS2Content(prisma: PrismaClient) {
+  await seedProducts(prisma, "HL", 3);
+
+  const id = productId("HL", "chemical-bonding");
+  const sections = await prisma.section.findMany({
+    where: { productId: id },
+    orderBy: { order: "asc" }
+  });
+
+  for (const section of sections) {
+    await prisma.section.update({
+      where: { id: section.id },
+      data: { title: section.order === 1 ? "S2 · Models of Bonding and Structure" : `Archive ${section.order}` }
+    });
+  }
+
+  for (const [title, vodFileId] of hlS2Videos) {
+    await upsertVodLesson(prisma, id, null, title, vodFileId);
+  }
+
+  // Keep any real S2 videos already connected, but move them into the flat chapter list.
+  await prisma.resource.updateMany({
+    where: {
+      productId: id,
+      type: ResourceType.VIDEO,
+      vodFileId: { not: null }
+    },
+    data: { sectionId: null, isPreview: false }
+  });
+
+  // Preserve an already uploaded legacy PDF by renaming it to the new numbered slot.
+  for (const resource of hlS2ResourceAliases) {
+    const uploaded = await prisma.resource.findFirst({
+      where: {
+        productId: id,
+        type: resource.type,
+        title: { in: [...resource.aliases] },
+        storageKey: { not: null }
+      },
+      orderBy: { id: "asc" }
+    });
+
+    if (uploaded) {
+      await prisma.resource.update({
+        where: { id: uploaded.id },
+        data: { title: resource.title, sectionId: null, isPreview: false }
+      });
+    }
+  }
+
+  // S2 is presented as one chapter-level list, matching the current Unit 3 layout.
+  await prisma.resource.deleteMany({
+    where: { productId: id, sectionId: { not: null } }
+  });
+
+  await prisma.resource.deleteMany({
+    where: {
+      productId: id,
+      sectionId: null,
+      OR: [
+        { title: { in: [...legacySectionResourceTitles] } },
+        { type: ResourceType.VIDEO, vodFileId: null }
+      ]
+    }
+  });
+
+  for (const [type, title] of hlS2ChapterResources) {
+    await upsertChapterResource(prisma, id, type, title);
   }
 }
 
