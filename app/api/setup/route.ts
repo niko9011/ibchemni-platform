@@ -188,12 +188,35 @@ const questionMediaStatements = [
   `ALTER TABLE "Question" ADD COLUMN IF NOT EXISTS "imageUrl" TEXT;`
 ];
 
+function normalizeSetupToken(value: string | null | undefined) {
+  const trimmed = value?.trim() || "";
+  if (trimmed.length >= 2) {
+    const first = trimmed[0];
+    const last = trimmed[trimmed.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      return trimmed.slice(1, -1).trim();
+    }
+  }
+  return trimmed;
+}
+
 export async function GET(request: Request) {
-  const setupToken = process.env.SETUP_TOKEN;
+  const setupToken = normalizeSetupToken(process.env.SETUP_TOKEN);
   const url = new URL(request.url);
-  const token = url.searchParams.get("token");
+  const token = normalizeSetupToken(url.searchParams.get("token"));
   if (!setupToken || token !== setupToken) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "Unauthorized",
+        setupTokenConfigured: Boolean(setupToken),
+        receivedToken: Boolean(token),
+        expectedLength: setupToken.length,
+        receivedLength: token.length,
+        version: "v35-token-diagnostic"
+      },
+      { status: 401 }
+    );
   }
 
   const step = url.searchParams.get("step") || "all";
