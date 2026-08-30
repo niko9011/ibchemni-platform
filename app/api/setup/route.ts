@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { requireTeacher } from "@/lib/auth";
 import {
   organizeHlPeriodicTrendContent,
   organizeHlS2Content,
@@ -204,7 +205,9 @@ export async function GET(request: Request) {
   const setupToken = normalizeSetupToken(process.env.SETUP_TOKEN);
   const url = new URL(request.url);
   const token = normalizeSetupToken(url.searchParams.get("token"));
-  if (!setupToken || token !== setupToken) {
+  const tokenAuthorized = Boolean(setupToken) && token === setupToken;
+  const teacher = tokenAuthorized ? null : await requireTeacher();
+  if (!tokenAuthorized && !teacher) {
     return NextResponse.json(
       {
         ok: false,
@@ -213,7 +216,8 @@ export async function GET(request: Request) {
         receivedToken: Boolean(token),
         expectedLength: setupToken.length,
         receivedLength: token.length,
-        version: "v35-token-diagnostic"
+        teacherSession: false,
+        version: "v36-teacher-setup"
       },
       { status: 401 }
     );
@@ -278,6 +282,7 @@ export async function GET(request: Request) {
       step,
       level: levelParam,
       chapter: chapterParam,
+      authorizedBy: teacher ? "teacher-session" : "setup-token",
       message: `Setup step "${step}" completed.`
     });
   } catch (error) {
