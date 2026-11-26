@@ -1,6 +1,7 @@
 import { getCurrentUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { chapterProducts } from "@/lib/products";
+import QuestionSubmitForm from "@/app/components/QuestionSubmitForm";
 
 export const dynamic = "force-dynamic";
 
@@ -60,7 +61,7 @@ export default async function QuestionHubPage({
               <h2 className="mt-2 text-2xl font-semibold text-ink">{question.title}</h2>
               <p className="mt-4 leading-7 text-muted">{question.question}</p>
               {question.imageUrl ? (
-                <img src={question.imageUrl} alt="" loading="lazy" className="mt-5 max-h-[32rem] w-full rounded-2xl object-contain" />
+                <img src={question.imageUrl.startsWith("cos:") ? `/api/question-media?kind=question&id=${question.id}` : question.imageUrl} alt="Illustration for this chemistry question" loading="lazy" className="mt-5 max-h-[32rem] w-full rounded-2xl object-contain" />
               ) : null}
               <div className="mt-5 rounded-2xl bg-soft p-5">
                 <p className="text-sm font-bold uppercase tracking-[0.16em] text-blue">Answer</p>
@@ -79,17 +80,7 @@ export default async function QuestionHubPage({
         <aside className="mobile-card h-fit rounded-[2rem] card p-6 lg:sticky lg:top-24">
           <h2 className="text-2xl font-semibold text-ink">Submit a question</h2>
           {user ? (
-            <form action="/api/questions/submit" method="post" className="mt-5 space-y-4">
-              <select name="topic" required className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
-                <option value="">Choose chapter</option>
-                {chapterProducts.map(([, chapterNo, title]) => (
-                  <option key={chapterNo} value={title}>{chapterNo}. {title}</option>
-                ))}
-              </select>
-              <textarea name="question" required placeholder="Type your question here" className="min-h-36 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-              <input name="fileUrl" placeholder="Optional image or PDF link" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-              <button className="w-full rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Submit question</button>
-            </form>
+            <QuestionSubmitForm />
           ) : (
             <div className="mt-5 rounded-2xl bg-soft p-5">
               <p className="leading-7 text-muted">Log in as a student to submit questions. Everyone can browse published answers.</p>

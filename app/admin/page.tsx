@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
 import { requireTeacher } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { chapterProducts, isLegacyPlaceholderResource } from "@/lib/products";
+import { isLegacyPlaceholderResource } from "@/lib/products";
 import ResourceUploader from "@/app/admin/ResourceUploader";
+import QuestionPublishForm from "@/app/components/QuestionPublishForm";
 
 export const dynamic = "force-dynamic";
 
@@ -155,20 +156,7 @@ export default async function AdminPage({
       <section id="questions" className="mt-10 grid gap-6 lg:grid-cols-2">
         <div className="rounded-[2rem] card p-6">
           <h2 className="text-2xl font-semibold text-ink">Publish Question Hub Answer</h2>
-          <form action="/api/admin/questions" method="post" className="mt-5 space-y-4">
-            <input name="title" placeholder="Question title" required className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <select name="topic" required className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue">
-              <option value="">Choose chapter</option>
-              {chapterProducts.map(([, chapterNo, title]) => (
-                <option key={chapterNo} value={title}>{chapterNo}. {title}</option>
-              ))}
-            </select>
-            <textarea name="question" placeholder="Question" required className="min-h-24 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <textarea name="writtenAnswer" placeholder="Written answer" required className="min-h-32 w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <input name="imageUrl" placeholder="Tencent COS image URL, optional" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <input name="videoUrl" placeholder="Tencent VOD/MP4 video URL, optional" className="w-full rounded-2xl border border-blue/20 px-4 py-3 outline-none focus:border-blue" />
-            <button className="w-full rounded-full bg-blue px-5 py-3 text-sm font-bold text-white">Publish answer</button>
-          </form>
+          <QuestionPublishForm />
         </div>
 
         <div className="rounded-[2rem] card p-6">
@@ -179,7 +167,7 @@ export default async function AdminPage({
                 <p className="text-sm font-bold text-blue">{submission.topic} · {submission.status}</p>
                 <p className="mt-2 font-semibold text-ink">{submission.student.name} · {submission.student.email}</p>
                 <p className="mt-2 text-sm leading-6 text-muted">{submission.question}</p>
-                {submission.fileUrl ? <a href={submission.fileUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-bold text-blue">Open attachment</a> : null}
+                {submission.fileUrl ? <a href={submission.fileUrl.startsWith("cos:") ? `/api/question-media?kind=submission&id=${submission.id}` : submission.fileUrl} target="_blank" rel="noreferrer" className="mt-3 inline-flex text-sm font-bold text-blue">Open image</a> : null}
               </article>
             ))}
             {submissions.length === 0 ? <p className="text-muted">No submitted questions yet.</p> : null}

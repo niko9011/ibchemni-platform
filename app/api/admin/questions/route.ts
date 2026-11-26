@@ -12,9 +12,13 @@ export async function POST(request: Request) {
   const question = String(formData.get("question") || "").trim();
   const writtenAnswer = String(formData.get("writtenAnswer") || "").trim();
   const imageUrl = String(formData.get("imageUrl") || "").trim();
+  const imageKey = String(formData.get("imageKey") || "").trim();
   const videoUrl = String(formData.get("videoUrl") || "").trim();
 
   if (!title || !topic || !question || !writtenAnswer) return NextResponse.redirect(new URL("/admin", request.url), 303);
+  if (imageKey && !imageKey.startsWith(`question-answers/${teacher.id}/`)) {
+    return NextResponse.redirect(new URL("/admin?uploadError=1#questions", request.url), 303);
+  }
 
   await prisma.question.create({
     data: {
@@ -22,7 +26,7 @@ export async function POST(request: Request) {
       topic,
       question,
       writtenAnswer,
-      imageUrl: imageUrl || null,
+      imageUrl: imageKey ? `cos:${imageKey}` : imageUrl || null,
       videoUrl: videoUrl || null
     }
   });

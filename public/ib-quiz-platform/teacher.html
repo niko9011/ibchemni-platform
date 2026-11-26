@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teacher · score collection</title>
+<link rel="stylesheet" href="style.css">
+<style>
+.ta { width: 100%; min-height: 150px; font-family: Menlo, Consolas, monospace; font-size: 12px;
+  border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: #FBFCFE; line-height: 1.7; }
+.ta:focus { outline: none; border-color: var(--navy-soft); box-shadow: 0 0 0 3px #E6EFF9; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+td { padding: 9px 10px; border-bottom: 1px solid #EEF2F7; }
+td.num { font-variant-numeric: tabular-nums; }
+.row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+.err { color: var(--no); font-size: 12px; margin-top: 10px; }
+.stat { display: flex; gap: 18px; margin-top: 6px; font-size: 12px; color: var(--muted); }
+.stat b { color: var(--navy-deep); font-size: 18px; font-weight: 600; display: block; }
+</style>
+</head>
+<body>
+<header class="site small"><div class="inner">
+  <div class="back" onclick="location.href='index.html'">← Student site</div>
+  <h1>Teacher view</h1>
+  <p>Generate class access codes so only the right class can open a chapter — then collect score codes and export a CSV for ManageBac.</p>
+</div></header>
+<main class="wrap">
+  <section class="card" id="taskCard">
+    <div class="listhead">1 · Set tasks for a class</div>
+    <p class="footnote" style="margin-top:4px">Pick the class and tick the quizzes to open, then press <b>Open selected</b>. Every student of that class who signs in sees them under <b>My tasks</b> until you remove them here. Nothing else is open for them.</p>
+    <div class="row" style="margin-top:8px">
+      <select id="taskCls" style="min-width:230px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">— select a class —</option></select>
+      <button onclick="assignTasks(this)">Open selected for this class</button>
+      <button class="ghost" onclick="loadAssigned(this)">Refresh</button>
+      <span class="acc-status" id="asgStat" style="align-self:center"></span>
+    </div>
+    <div class="err" id="asgErr"></div>
+    <div class="listhead">Currently open for this class</div>
+    <table id="asgTbl"><thead><tr><th>Quiz</th><th>Level · paper</th><th>Opened on</th><th></th></tr></thead>
+      <tbody><tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr></tbody></table>
+    <div id="chList" style="margin-top:12px"></div>
+    <div class="row">
+      <button onclick="assignTasks(this)">Open selected for this class</button>
+      <a class="tlink" style="align-self:center" onclick="clearTicks()">clear ticks</a>
+    </div>
+  </section>
+  <section class="card">
+    <div class="listhead">2 · Access code (optional)</div>
+    <p class="footnote" style="margin-top:4px">Students who sign in do not need a code — use section 1. A code for selected chapters still works as a second way to open them. The <b>all-chapters code is a teacher master code</b>: use it on your own computer or phone, never give it to students (it does not unlock anything for them).</p>
+    <div class="row" style="margin-top:6px">
+      <input type="text" id="clsName" placeholder="Class name for the code, e.g. DP2A" style="flex:1">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button onclick="genCode(false)">Code for the selected chapters</button>
+      <button class="ghost" onclick="genCode(true)">Teacher master code (all chapters)</button>
+    </div>
+    <div class="err" id="genErr"></div>
+    <div id="genOut" style="display:none">
+      <div class="listhead" id="genTitle" style="margin-top:14px">Give this code to the class</div>
+      <div class="codebox" id="genBox"></div>
+      <div class="row"><button onclick="copyGen(this)">Copy code</button></div>
+    </div>
+  </section>
+  <section class="card">
+    <div class="listhead">3 · Class roster</div>
+    <p class="footnote" style="margin-top:4px">Rosters were exported from ManageBac (51 students in 5 classes, G9 excluded). Pick a class — the student list loads automatically and is saved in this browser.</p>
+    <div class="row" style="margin-top:8px">
+      <select id="clsSel" style="flex:1; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
+        <option value="">— select a class —</option>
+      </select>
+      <span class="acc-status" id="clsInfo" style="align-self:center"></span>
+    </div>
+    <details style="margin-top:10px">
+      <summary style="font-size:12.5px; color:var(--navy-soft); cursor:pointer">Edit roster manually (Name, email — one per line)</summary>
+      <textarea class="ta" id="roster" style="min-height:100px; margin-top:8px" placeholder="刘思涵 Alex, 19983174572@163.com&#10;姚克 Yake, yk18108162992@163.com"></textarea>
+    </details>
+  </section>
+  <section class="card">
+    <div class="listhead">4 · Score collection</div>
+    <textarea class="ta" id="codes" placeholder="Student score codes, one per line..."></textarea>
+    <div class="row">
+      <button onclick="parseCodes()">Read codes</button>
+      <button class="ghost" onclick="downloadCSV()">Download CSV for ManageBac</button>
+      <button class="ghost" onclick="clearAll()">Clear</button>
+    </div>
+    <div class="err" id="err"></div>
+  </section>
+  <section class="card" id="summary" style="display:none">
+    <div class="listhead">Attempts</div>
+    <div class="stat" id="stat"></div>
+    <table id="tbl"><thead><tr>
+      <th>Student</th><th>Quiz</th><th>Score</th><th>%</th><th>Submitted</th><th></th>
+    </tr></thead><tbody></tbody></table>
+  </section>
+  <section class="card" id="mbCard" style="display:none">
+    <div class="listhead">4 · ManageBac entry column</div>
+    <p class="footnote" style="margin-top:4px">This ManageBac version has <b>no CSV import</b> — grades are typed straight into the gradebook grid (auto-saved). The column below is already sorted in ManageBac row order, so you can go down the list cell by cell.</p>
+    <div class="row">
+      <select id="taskSel" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"></select>
+      <select id="valMode" style="padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff">
+        <option value="score">Raw score (e.g. 15)</option>
+        <option value="pct">Percentage (e.g. 88)</option>
+      </select>
+      <button onclick="copyColumn(this)">Copy column</button>
+      <button class="ghost" onclick="downloadCSV()">Download CSV (backup)</button>
+    </div>
+    <table id="mbTbl"><thead><tr><th>#</th><th>Student</th><th>Score</th><th>Status</th></tr></thead><tbody></tbody></table>
+    <textarea class="ta" id="colBox" style="min-height:120px; margin-top:10px" readonly></textarea>
+  </section>
+  <section class="card" id="cloudCard">
+    <div class="listhead">5 · Student answers &amp; summary (auto-reported)</div>
+    <p class="footnote" style="margin-top:4px">Every finished attempt on the student site is reported here automatically — no score codes needed. For each student + quiz the <b>latest</b> submission is shown; press <b>Answers</b> to see how they did on each question.</p>
+    <div class="row">
+      <select id="cloudCls" style="min-width:130px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All classes</option></select>
+      <select id="cloudGroup" style="min-width:170px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All sections</option></select>
+      <select id="cloudCh" style="min-width:200px; max-width:340px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff"><option value="">All quizzes</option></select>
+      <button onclick="loadCloud(this)">Load cloud results</button>
+      <span class="acc-status" id="cloudStat"></span>
+    </div>
+    <div class="err" id="cloudErr"></div>
+    <div class="stat" id="cloudOverview"></div>
+    <div class="row" id="cloudViewRow" style="display:none">
+      <select id="cloudView" style="min-width:260px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="applyCloudFilter()">
+        <option value="quiz">One quiz — list of students</option>
+        <option value="student">Summary by student</option>
+        <option value="matrix">Matrix — students × quizzes</option>
+      </select>
+      <button class="ghost" onclick="downloadCSV()">Download CSV</button>
+    </div>
+    <div id="cloudDash" style="overflow-x:auto"></div>
+  </section>
+  <section class="card" id="mapCard">
+    <div class="listhead">6 · Past paper sets — which session each set is</div>
+    <p class="footnote" style="margin-top:4px">Students only ever see <b>Set 1, Set 2 …</b>; the session is never shown on the student site. This table is for you only.</p>
+    <div class="row">
+      <select id="mapLevel" style="min-width:180px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderPaperMap()">
+        <option value="SLP">SL Past Papers</option>
+        <option value="HLP">HL Past Papers</option>
+      </select>
+      <span class="acc-status" id="mapStat"></span>
+    </div>
+    <table id="mapTbl"><thead><tr><th>Set</th><th>Session</th><th>Time zone</th><th>Chapter IDs</th></tr></thead><tbody></tbody></table>
+  </section>
+  <section class="card" id="accCard">
+    <div class="listhead">7 · Student accounts</div>
+    <p class="footnote" style="margin-top:4px">Each student signs in with <b>the email on the roster</b> and a password. You create the accounts here — students cannot create their own. Every account starts with the password <b>123456</b>; the student is asked to choose their own password the first time they sign in (they can change it once). If a student forgets their password, press <b>reset</b> to put it back to 123456.</p>
+    <div class="row">
+      <select id="accCls" style="min-width:220px; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font-size:13px; background:#fff" onchange="renderAccounts()"><option value="">All classes</option></select>
+      <button onclick="loadAccounts(this)">Refresh list</button>
+      <button class="ghost" onclick="createAccounts(false, this)">Create missing accounts (this class)</button>
+      <button class="ghost" onclick="createAccounts(true, this)">Create missing accounts (all classes)</button>
+      <button class="ghost" onclick="copyAccounts(this)">Copy email + password list</button>
+      <span class="acc-status" id="accStat"></span>
+    </div>
+    <div class="err" id="accErr"></div>
+    <table id="accTbl"><thead><tr><th>#</th><th>Student</th><th>Email (sign-in)</th><th>Class</th><th>Password</th><th></th></tr></thead><tbody></tbody></table>
+  </section>
+</main>
+<script src="tcb3.js"></script>
+<script src="cloud-config.js"></script>
+<script src="papers-map.js"></script>
+<script src="data.js"></script>
+<script src="roster-data.js"></script>
+<script>
+let rows = [];
+const CH = {};
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
+function levelPaperLabel(level2, paper) {
+  const past = /P$/.test(level2 || "");
+  return (LEVEL_LABELS[level2 || "SL"] || level2) + " · " + (past ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[paper] || paper) : paper);
+}
+
+/* ---- access code generator (same scheme as app.js) ---- */
+function hash6(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+  return h.toString(36);
+}
+function b64urlEnc(s) {
+  return btoa(unescape(encodeURIComponent(s))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+const PREIB_TEACHER = [
+  { id: "preib-stoich", title: "Stoichiometry", paper: "MCQ", src: ["ch1"] },
+  { id: "preib-atoms", title: "Atomic Structure", paper: "MCQ", src: ["ch2"] },
+  { id: "preib-periodic", title: "Periodic Trends", paper: "MCQ", src: ["ch3"] },
+  { id: "preib-bonding", title: "Chemical Bonding", paper: "MCQ", src: ["ch4.1", "ch4.2", "ch4.3"] },
+  { id: "preib-frq-polarity", title: "Chemical Bonding · Molecular Polarity (VSEPR & Polarity)", paper: "FRQ", n: 10 }
+];
+function allQuizzes() {
+  const pre = PREIB_TEACHER.map(p => ({
+    id: p.id, title: p.title, level2: "Pre-IB", paper: p.paper,
+    questions: new Array(p.n || p.src.reduce((a, id) => a + ((QUIZ_DATA.chapters.find(c => c.id === id) || { questions: [] }).questions.length), 0))
+  }));
+  return pre.concat(QUIZ_DATA.chapters);
+}
+function buildChapterList() {
+  const box = document.getElementById("chList");
+  const byKey = {};
+  allQuizzes().forEach(ch => {
+    const key = levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ");
+    (byKey[key] = byKey[key] || []).push(ch);
+  });
+  box.innerHTML = Object.keys(byKey).map((key, gi) => `
+    <div class="grp">
+      <div class="grp-h">${key}
+        <a class="tlink" style="font-weight:400; margin-left:10px" onclick="toggleGroup(this, ${gi})">select all / none</a></div>
+      <div class="grp-body" data-g="${gi}">
+      ${byKey[key].map(ch => `
+        <label class="ck"><input type="checkbox" value="${ch.id}"> ${esc(ch.title)} <span class="cnt">(${ch.questions.length} Q)</span></label>`).join("")}
+      </div>
+    </div>`).join("");
+}
+function clearTicks() {
+  document.querySelectorAll("#chList input[type=checkbox]").forEach(b => { b.checked = false; });
+}
+function toggleGroup(link, gi) {
+  const boxes = document.querySelector('.grp-body[data-g="' + gi + '"]').querySelectorAll('input[type="checkbox"]');
+  const on = !Array.from(boxes).every(b => b.checked);
+  boxes.forEach(b => { b.checked = on; });
+  link.textContent = on ? "clear group" : "select all / none";
+}
+function renderPaperMap() {
+  const lvl = document.getElementById("mapLevel").value;
+  const tb = document.querySelector("#mapTbl tbody");
+  const prefix = lvl.toLowerCase().replace(/p$/, "");                 // "SLP" -> "sl" (chapter ids are slset3p1, hlset3p1)
+  const list = (typeof PAPERS_MAP === "undefined" ? [] : PAPERS_MAP).filter(r => r.level === lvl);
+  tb.innerHTML = list.map(r => {
+    const ids = ["p1", "p2"].map(p => prefix + "set" + r.set + p).filter(id => QUIZ_DATA.chapters.some(c => c.id === id));
+    return `<tr><td>Set ${r.set}</td><td>${esc(r.session)}</td><td>${esc(r.tz || "—")}</td>
+      <td>${ids.map(id => "<code>" + id + "</code>").join(" ")}</td></tr>`;
+  }).join("");
+  document.getElementById("mapStat").textContent = `${list.length} sets`;
+}
+let accRows = [];
+const accCls = document.getElementById("accCls");
+MB_CLASSES.forEach(c => { const o = document.createElement("option"); o.value = c.name; o.textContent = c.name; accCls.appendChild(o); });
+async function fetchAccounts() {
+  const app = await tcbReady();
+  let skip = 0, all = [];
+  while (true) {
+    const r = await app.rdb().from("students").select("*").order("n", { ascending: true }).range(skip, skip + 999);
+    if (r.error) throw r.error;
+    const part = r.data || [];
+    all = all.concat(part);
+    if (part.length < 1000 || skip >= 9000) break;
+    skip += 1000;
+  }
+  return all;
+}
+function accFail(e) {
+  const code = e && e.code ? e.code : "";
+  document.getElementById("accErr").textContent = "Action failed: " + (code ? code + " — " : "") + ((e && (e.message || e)) || e) +
+    (String(code).indexOf("PGRST205") > -1 ? " (the students table has not been created yet)" : "") +
+    (String(code).indexOf("42703") > -1 || String(e && e.message).indexOf("column") > -1 ? " (the accounts table needs the extra columns — run cloudbase-accounts-v2.sql in the SQL console)" : "");
+}
+function renderAccounts() {
+  const byEmail = {};
+  accRows.forEach(r => { byEmail[MB_email(r.n)] = r; });
+  const classes = MB_CLASSES.filter(c => !accCls.value || c.name === accCls.value);
+  let i = 0, made = 0;
+  const html = [];
+  classes.forEach(c => c.students.forEach(st => {
+    const email = MB_email(st.email), row = byEmail[email];
+    i++;
+    if (row) made++;
+    html.push(`<tr><td>${i}</td><td>${esc(MB_displayName(c.name, st))}</td><td>${esc(email)}</td><td>${esc(c.name)}</td>
+      <td>${!row ? '<span class="cnt">no account yet</span>' : row.changed ? "own password set" : "<b>123456</b> (starting password)"}</td>
+      <td>${row ? `<a class="tlink" onclick="resetAccount('${esc(email)}', this)">reset to 123456</a>` : ""}</td></tr>`);
+  }));
+  document.querySelector("#accTbl tbody").innerHTML = html.join("");
+  document.getElementById("accStat").textContent = `${i} students in the roster · ${made} with an account`;
+}
+async function loadAccounts(btn) {
+  document.getElementById("accErr").textContent = "";
+  btn.disabled = true; btn.textContent = "Loading…";
+  try {
+    accRows = await fetchAccounts();
+    accRows = accRows.filter(r => MB_CLASSES.some(c => c.students.some(st => MB_email(st.email) === MB_email(r.n))));
+    renderAccounts();
+  } catch (e) { accFail(e); }
+  btn.disabled = false; btn.textContent = "Refresh list";
+}
+/* Create an account (email + 123456) for every roster student who does not have one yet. */
+async function createAccounts(allClasses, btn) {
+  const errEl = document.getElementById("accErr");
+  errEl.textContent = "";
+  btn.disabled = true;
+  try {
+    accRows = await fetchAccounts();
+    const have = new Set(accRows.map(r => MB_email(r.n)));
+    const todo = [];
+    if (!allClasses && !accCls.value) { document.getElementById("accStat").textContent = "Pick a class first, or use the all-classes button."; return; }
+    MB_CLASSES.filter(c => allClasses || c.name === accCls.value)
+      .forEach(c => c.students.forEach(st => { if (!have.has(MB_email(st.email))) todo.push({ c, st }); }));
+    if (!todo.length) { renderAccounts(); document.getElementById("accStat").textContent = "Every student in this selection already has an account."; return; }
+    const app = await tcbReady();
+    let done = 0;
+    for (const { c, st } of todo) {
+      const email = MB_email(st.email);
+      btn.textContent = `Creating ${done + 1} / ${todo.length}…`;
+      const r = await app.rdb().from("students").insert({ n: email, name: MB_displayName(c.name, st), cls: c.name, pin: await MB_pinHash(email, MB_DEFAULT_PASSWORD) });
+      if (r.error && String(r.error.code || "").indexOf("23505") < 0 && String(r.message || "").indexOf("duplicate") < 0) throw r.error;
+      done++;
+    }
+    accRows = await fetchAccounts();
+    renderAccounts();
+    document.getElementById("accStat").textContent = `${done} account${done === 1 ? "" : "s"} created with the starting password 123456.`;
+  } catch (e) { accFail(e); }
+  btn.disabled = false; btn.textContent = allClasses ? "Create missing accounts (all classes)" : "Create missing accounts (this class)";
+}
+async function resetAccount(email, link) {
+  document.getElementById("accErr").textContent = "";
+  try {
+    const app = await tcbReady();
+    const r = await app.rdb().from("students").update({ pin: await MB_pinHash(email, MB_DEFAULT_PASSWORD), changed: false }).eq("n", email);
+    if (r.error) throw r.error;
+    accRows = await fetchAccounts();
+    renderAccounts();
+    document.getElementById("accStat").textContent = "Password of " + email + " reset to 123456.";
+  } catch (e) { accFail(e); }
+}
+function copyAccounts(btn) {
+  const byEmail = {};
+  accRows.forEach(r => { byEmail[MB_email(r.n)] = r; });
+  const lines = [];
+  MB_CLASSES.filter(c => !accCls.value || c.name === accCls.value).forEach(c => c.students.forEach(st => {
+    const email = MB_email(st.email), row = byEmail[email];
+    lines.push(`${MB_displayName(c.name, st)}\t${email}\t${row && row.changed ? "(own password already set)" : "123456"}`);
+  }));
+  navigator.clipboard.writeText("Student\tEmail (sign-in)\tPassword\n" + lines.join("\n")).then(() => { btn.textContent = "Copied"; setTimeout(() => { btn.textContent = "Copy email + password list"; }, 1500); });
+}
+function genCode(full) {
+  const err = document.getElementById("genErr");
+  const out = document.getElementById("genOut");
+  err.textContent = "";
+  let cls, allow;
+  if (full) {
+    cls = "TEACHER"; allow = ["*"];                // only a code with this class name unlocks everything (see app.js getAccess)
+  } else {
+    cls = document.getElementById("clsName").value.trim();
+    if (!cls) { err.textContent = "Please enter a class name for the code first."; return; }
+    allow = [...document.querySelectorAll("#chList input:checked")].map(cb => cb.value);
+    if (!allow.length) { err.textContent = "Tick at least one chapter for this code."; return; }
+  }
+  const code = "IBQ." + b64urlEnc(JSON.stringify({ c: cls, a: allow })) + "." + hash6(JSON.stringify({ c: cls, a: allow }));
+  document.getElementById("genBox").textContent = code;
+  document.getElementById("genTitle").textContent = full ? "Teacher master code — keep this for your own devices only" : "Give this code to the class";
+  out.style.display = "block";
+}
+function copyGen(btn) {
+  const text = document.getElementById("genBox").textContent.trim();
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied";
+    setTimeout(() => (btn.textContent = "Copy code"), 1500);
+  });
+}
+/* ---- section 1: set tasks for a class (cloud table "assignments", one row per class + quiz) ---- */
+const taskCls = document.getElementById("taskCls");
+MB_CLASSES.forEach(c => { const o = document.createElement("option"); o.value = c.name; o.textContent = c.name; taskCls.appendChild(o); });
+let assignedRows = null;
+const fmtDay = v => { const d = new Date(v); return isNaN(d) ? String(v || "") : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`; };
+function asgFail(e) {
+  const code = e && e.code ? String(e.code) : "";
+  document.getElementById("asgErr").textContent = "Action failed: " + (code ? code + " — " : "") + ((e && (e.message || e)) || e) +
+    (code.indexOf("PGRST205") > -1 ? " (the assignments table has not been created yet — run cloudbase-assignments.sql in the SQL console)" : "");
+}
+async function fetchAssigned() {
+  const app = await tcbReady();
+  const r = await app.rdb().from("assignments").select("*").order("id", { ascending: true }).range(0, 999);
+  if (r.error) throw r.error;
+  return r.data || [];
+}
+function renderAssigned() {
+  const cls = taskCls.value;
+  const tb = document.querySelector("#asgTbl tbody");
+  const rows = cls && assignedRows ? assignedRows.filter(r => r.cls === cls) : [];
+  if (!cls) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Select a class, then press Refresh.</td></tr>`; }
+  else if (!assignedRows) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Press Refresh to load.</td></tr>`; }
+  else if (!rows.length) { tb.innerHTML = `<tr><td colspan="4" class="cnt">Nothing is open for this class yet.</td></tr>`; }
+  else {
+    tb.innerHTML = rows.map(r => {
+      const ch = allQuizzes().find(c => c.id === r.ch);
+      return `<tr><td>${esc(r.title || r.ch)}</td><td>${ch ? esc(levelPaperLabel(ch.level2 || "SL", ch.paper || "MCQ")) : '<span class="cnt">unknown quiz</span>'}</td>
+        <td>${esc(fmtDay(r.created_at))}</td><td><a class="tlink" onclick="removeAssigned(${+r.id}, this)">close</a></td></tr>`;
+    }).join("");
+  }
+  document.querySelectorAll("#chList input[type=checkbox]").forEach(cb => cb.closest("label").classList.toggle("assigned", rows.some(r => r.ch === cb.value)));
+  document.getElementById("asgStat").textContent = cls && assignedRows ? `${rows.length} quiz${rows.length === 1 ? "" : "zes"} open` : "";
+}
+async function loadAssigned(btn) {
+  document.getElementById("asgErr").textContent = "";
+  if (btn) { btn.disabled = true; btn.textContent = "Loading…"; }
+  try {
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+  } catch (e) { asgFail(e); }
+  if (btn) { btn.disabled = false; btn.textContent = "Refresh"; }
+}
+async function assignTasks(btn) {
+  const errEl = document.getElementById("asgErr");
+  errEl.textContent = "";
+  const cls = taskCls.value;
+  if (!cls) { errEl.textContent = "Select a class first."; taskCls.focus(); return; }
+  const ids = [...document.querySelectorAll("#chList input:checked")].map(cb => cb.value);
+  if (!ids.length) { errEl.textContent = "Tick at least one quiz below."; return; }
+  btn.disabled = true; btn.textContent = "Opening…";
+  try {
+    const app = await tcbReady();
+    let added = 0;
+    for (const id of ids) {
+      const ch = allQuizzes().find(c => c.id === id);
+      const r = await app.rdb().from("assignments").insert({ cls: cls, ch: id, title: ch ? ch.title : id });
+      if (r.error) {
+        const dup = String(r.error.code || "") === "23505" || String(r.message || "").indexOf("duplicate") > -1 || String(r.message || "").indexOf("unique") > -1;
+        if (!dup) throw r.error;                   // already open for this class: nothing to do
+      } else added++;
+    }
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+    document.getElementById("asgStat").textContent = `${added} newly opened · ${assignedRows.filter(r => r.cls === cls).length} open in total`;
+  } catch (e) { asgFail(e); }
+  btn.disabled = false; btn.textContent = "Open selected for this class";
+}
+async function removeAssigned(id, link) {
+  document.getElementById("asgErr").textContent = "";
+  link.textContent = "…";
+  try {
+    const app = await tcbReady();
+    const r = await app.rdb().from("assignments").delete().eq("id", id);
+    if (r.error) throw r.error;
+    assignedRows = await fetchAssigned();
+    renderAssigned();
+  } catch (e) { asgFail(e); link.textContent = "close"; }
+}
+taskCls.addEventListener("change", () => { renderAssigned(); document.getElementById("clsName").value = taskCls.value; });
+buildChapterList();
+renderPaperMap();
+setTimeout(loadAssigned, 0);   // deferred: the sign-in helpers below are defined later in this script
+
+function decode(code) {
+  const txt = atob(code.trim());
+  const obj = JSON.parse(decodeURIComponent(escape(txt)));
+  const m = /^(\d+)\/(\d+)$/.exec(obj.s || "");
+  if (!m) throw new Error("bad score");
+  return { name: obj.n, chapter: obj.c, score: +m[1], total: +m[2], date: obj.d || "" };
+}
+
+function parseCodes() {
+  const raw = document.getElementById("codes").value.split(/[\n\r]+/).map(s => s.trim()).filter(Boolean);
+  const errEl = document.getElementById("err");
+  rows = [];
+  const bad = [];
+  raw.forEach(c => { try { rows.push(decode(c)); } catch (e) { bad.push(c.slice(0, 18)); } });
+  rows.sort((a, b) => a.name.localeCompare(b.name));
+  errEl.textContent = bad.length ? `${bad.length} code(s) could not be read: ${bad.join(", ")}` : "";
+  renderSummary();
+}
+
+function renderSummary() {
+  const box = document.getElementById("summary");
+  const tb = document.querySelector("#tbl tbody");
+  if (!rows.length) { box.style.display = "none"; return; }
+  box.style.display = "block";
+  const pct = rows.map(r => r.score / r.total);
+  const avg = Math.round(100 * pct.reduce((a, b) => a + b, 0) / pct.length);
+  document.getElementById("stat").innerHTML =
+    `<div><b>${rows.length}</b>attempts</div>
+     <div><b>${new Set(rows.map(r => r.name)).size}</b>students</div>
+     <div><b>${avg}%</b>average</div>`;
+  tb.innerHTML = rows.map((r, i) => `<tr data-i="${i}">
+    <td>${esc(r.name)}</td><td>${esc(r.chapter)}</td>
+    <td class="num">${r.score}/${r.total}</td>
+    <td class="num">${Math.round(100 * r.score / r.total)}%</td>
+    <td>${esc(fmtDate(r.date))}</td>
+    <td><a class="tlink" onclick="toggleAnswers(${i})">Answers</a></td></tr>`).join("");
+  renderMbCard();
+}
+function fmtDate(s) {
+  const d = new Date(s);
+  if (!s || isNaN(d)) return s || "";
+  const p = n => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+
+/* ---- ManageBac entry column ---- */
+const taskSel = document.getElementById("taskSel");
+const valSel = document.getElementById("valMode");
+
+function renderMbCard() {
+  const card = document.getElementById("mbCard");
+  if (!rows.length) { card.style.display = "none"; return; }
+  card.style.display = "block";
+  const chapters = [...new Set(rows.map(r => r.chapter))];
+  const keep = taskSel.value;
+  taskSel.innerHTML = chapters.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if (chapters.includes(keep)) taskSel.value = keep;
+  buildColumn();
+}
+
+function buildColumn() {
+  const c = currentClass();
+  const chap = taskSel.value;
+  const mode = valSel ? valSel.value : "score";
+  const tb = document.querySelector("#mbTbl tbody");
+  const box = document.getElementById("colBox");
+  if (!c) {
+    tb.innerHTML = `<tr><td colspan="4" class="err">Pick a class in section 2 first.</td></tr>`;
+    box.value = "";
+    return;
+  }
+  const mine = rows.filter(r => r.chapter === chap);
+  const used = new Set();
+  const lines = [], trs = [];
+  c.students.forEach((s, i) => {
+    const hit = mine.find(r => { const m = matchStudent(r.name); return m && m.n === s.n && m.en === s.en; });
+    let val = "", status = "—";
+    if (hit) {
+      used.add(hit);
+      val = mode === "pct" ? Math.round(100 * hit.score / hit.total) : hit.score;
+      status = `<span style="color:#1B7F4B">✓ ${hit.score}/${hit.total}</span>`;
+    } else {
+      status = `<span style="color:var(--muted)">no submission</span>`;
+    }
+    lines.push(String(val));
+    trs.push(`<tr><td class="num">${i + 1}</td><td>${esc(s.n + " " + s.en)}</td><td class="num">${val === "" ? "" : val}</td><td>${status}</td></tr>`);
+  });
+  const leftovers = mine.filter(r => !used.has(r)).map(r => r.name);
+  if (leftovers.length) trs.push(`<tr><td colspan="4" class="err">Names not matched to this class: ${esc([...new Set(leftovers)].join(", "))}</td></tr>`);
+  tb.innerHTML = trs.join("");
+  box.value = lines.join("\n");
+}
+
+function copyColumn(btn) {
+  const text = document.getElementById("colBox").value;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = "Copied";
+    setTimeout(() => (btn.textContent = "Copy column"), 1500);
+  });
+}
+taskSel.addEventListener("change", buildColumn);
+if (valSel) valSel.addEventListener("change", buildColumn);
+
+function esc(s) { return String(s).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
+
+/* ---- roster: name -> email, persisted in localStorage ---- */
+const rosterEl = document.getElementById("roster");
+rosterEl.value = localStorage.getItem("roster") || "";
+rosterEl.addEventListener("input", () => localStorage.setItem("roster", rosterEl.value));
+function emailFor(name) {
+  const norm = s => String(s || "").trim().toLowerCase().replace(/\s+/g, "");
+  const target = norm(name);
+  for (const line of rosterEl.value.split(/[\n\r]+/)) {
+    const idx = line.lastIndexOf(",");
+    if (idx < 1) continue;
+    const nm = norm(line.slice(0, idx)), em = line.slice(idx + 1).trim();
+    if (nm && em && (nm === target || nm.includes(target) || target.includes(nm))) return em;
+  }
+  return "";
+}
+
+/* ---- ManageBac class rosters ---- */
+const clsSel = document.getElementById("clsSel");
+(function initClasses() {
+  if (typeof MB_CLASSES === "undefined") return;
+  MB_CLASSES.forEach((c, i) => {
+    const o = document.createElement("option");
+    o.value = String(i); o.textContent = `${c.name} · ${c.students.length} students`;
+    clsSel.appendChild(o);
+  });
+  const saved = localStorage.getItem("mbClass");
+  if (saved && MB_CLASSES[+saved]) { clsSel.value = saved; loadClass(); }
+})();
+
+function currentClass() {
+  return (typeof MB_CLASSES !== "undefined" && clsSel.value !== "") ? MB_CLASSES[+clsSel.value] : null;
+}
+
+function loadClass() {
+  const c = currentClass();
+  if (!c) return;
+  localStorage.setItem("mbClass", clsSel.value);
+  rosterEl.value = c.students.map(s => `${s.n} ${s.en}, ${s.email}`).join("\n");
+  localStorage.setItem("roster", rosterEl.value);
+  document.getElementById("clsInfo").textContent = `${c.students.length} students · ManageBac class ${c.mbId}`;
+  const nameBox = document.getElementById("clsName");
+  if (nameBox && !nameBox.value.trim()) nameBox.value = c.name;
+  if (rows.length) renderSummary();
+}
+clsSel.addEventListener("change", loadClass);
+
+/* match a quiz name against the selected class roster */
+function matchStudent(name) {
+  const c = currentClass();
+  const norm = s => String(s || "").toLowerCase().replace(/[\s,·._-]/g, "");
+  const t = norm(name);
+  if (!t) return null;
+  const pool = c ? c.students : [];
+  const exact = pool.find(s => norm(MB_displayName(c.name, s)) === t);   // "preib Tiger Zhao" must not match the other Tiger
+  if (exact) return exact;
+  const t0 = t.replace(/^(preib|11ib|12ib)/, ""); // strip class prefix, e.g. "12ib alex" -> "alex"
+  let hit = pool.find(s => norm(s.en) === t0 || norm(s.n) === t0 ||
+    norm(s.n + s.en) === t0 || norm(s.en + s.n) === t0 || norm(s.en) === t || norm(s.n) === t);
+  if (!hit) hit = pool.find(s => { const a = norm(s.n), b = norm(s.en); return (a && t.includes(a)) || (b && t.includes(b)); });
+  if (!hit && c) {
+    // fall back to global search, but flag it
+    for (const other of MB_CLASSES) {
+      const m = other.students.find(s => { const a = norm(s.n), b = norm(s.en); return (a && t.includes(a)) || (b && t.includes(b)); });
+      if (m) return { ...m, otherClass: other.name };
+    }
+  }
+  return hit || null;
+}
+
+function downloadCSV() {
+  if (!rows.length) { parseCodes(); if (!rows.length) return; }
+  const missing = rows.filter(r => !emailFor(r.name)).map(r => r.name);
+  if (missing.length && !confirm(`${missing.length} student(s) have no email in the roster: ${missing.join(", ")}. Export anyway?`)) return;
+  const head = ["Student", "Student email", "Task", "Points", "Max points", "Percentage", "Date"];
+  const lines = [head.join(",")];
+  rows.forEach(r => {
+    const cells = [r.name, emailFor(r.name), r.chapter, r.score, r.total,
+      (100 * r.score / r.total).toFixed(1), r.date];
+    lines.push(cells.map(c => `"${String(c).replace(/"/g, '""')}"`).join(","));
+  });
+  const blob = new Blob(["\ufeff" + lines.join("\r\n")], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "ib-p1-scores-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+}
+
+function clearAll() {
+  document.getElementById("codes").value = "";
+  document.getElementById("err").textContent = "";
+  document.getElementById("summary").style.display = "none";
+  rows = [];
+}
+
+/* ---- section 4: cloud results (CloudBase "attempts" collection) ---- */
+let _tcbApp = null;
+async function tcbReady() {
+  if (typeof TCB_ENV === "undefined" || !TCB_ENV || typeof cloudbase === "undefined")
+    throw new Error("Cloud env id is not configured yet (cloud-config.js).");
+  if (!_tcbApp) {
+    _tcbApp = cloudbase.init({ env: TCB_ENV, region: (typeof TCB_REGION !== "undefined" && TCB_REGION) || "ap-shanghai" });
+    const r = await _tcbApp.auth.signInAnonymously();
+    if (r && r.error) throw r.error;
+  }
+  return _tcbApp;
+}
+
+async function loadCloud(btn) {
+  const errEl = document.getElementById("cloudErr");
+  const statEl = document.getElementById("cloudStat");
+  errEl.textContent = "";
+  btn.disabled = true; btn.textContent = "Loading…";
+  try {
+    const app = await tcbReady();
+    const table = app.rdb().from("attempts");
+    let docs = [], skip = 0;
+    while (true) {
+      const res = await table.select("*").order("id", { ascending: false }).range(skip, skip + 999);
+      if (res && res.error) throw res.error;
+      const part = res.data || [];
+      docs = docs.concat(part);
+      if (part.length < 1000 || skip >= 20000) break;
+      skip += 1000;
+    }
+    // keep only the latest attempt per student + quiz (keyed by chapter id: SL and HL sets share titles)
+    const best = {};
+    docs.forEach(d => {
+      const key = (d.n || "") + "||" + (d.ch || d.title || "");
+      if (!best[key] || String(d.id) > String(best[key].id)) best[key] = d;
+    });
+    cloudAllRows = Object.values(best).map(d => ({
+      name: d.n || "", cls: d.cls || "", ch: d.ch || "",
+      level: String(d.ch || "").indexOf("preib-") === 0 ? "Pre-IB" : (d.level || ""),   // Pre-IB rows reuse SL questions
+      paper: d.paper || "MCQ",
+      group: "",
+      chapter: chapterLabel(d),
+      score: +d.s || 0, total: +d.t || 0, date: d.date || "", detail: d.detail || ""
+    }));
+    cloudAllRows.forEach(r => { r.group = levelPaperLabel(r.level || "SL", r.paper); });
+    fillCloudFilters();
+    applyCloudFilter();
+    statEl.textContent = `${docs.length} submissions · ${cloudAllRows.length} latest attempts`;
+  } catch (e) {
+    errEl.textContent = "Load failed: " + (e.code ? e.code + " — " : "") + (e.message || e);
+  }
+  btn.disabled = false; btn.textContent = "Load cloud results";
+}
+function chapterLabel(d) {
+  const past = /P$/.test(d.level || "");
+  return (past ? (LEVEL_LABELS[d.level] || d.level).replace(" Past Papers", "") + " · " : "") + (d.title || d.ch || "");
+}
+let cloudAllRows = [];
+const LEVEL_RANK = { "Pre-IB": 0, "SL": 1, "HL": 2, "SLP": 3, "HLP": 4 };
+function quizOrder(c) {                    // sort quizzes the way students see them
+  const n = c.ch.match(/set(\d+)/) || c.ch.match(/ch(\d+)/) || [0, 0];
+  return [LEVEL_RANK[c.level] === undefined ? 9 : LEVEL_RANK[c.level], c.paper === "MCQ" ? 0 : c.paper === "P2" ? 1 : 2, +n[1], c.ch];
+}
+function fillCloudFilters() {
+  const keepG = cloudGroup.value, keepC = cloudCh.value;
+  const groups = [...new Set(cloudAllRows.map(r => r.group))].sort();
+  cloudGroup.innerHTML = `<option value="">All sections</option>` + groups.map(g => `<option value="${esc(g)}">${esc(g)}</option>`).join("");
+  if (groups.includes(keepG)) cloudGroup.value = keepG;
+  fillQuizFilter();
+  if (Array.from(cloudCh.options).some(o => o.value === keepC)) cloudCh.value = keepC;
+}
+function fillQuizFilter() {
+  const inClass = cloudAllRows.filter(r => !cloudCls.value || r.cls === cloudCls.value);
+  const quizzes = [...new Set(inClass.filter(r => !cloudGroup.value || r.group === cloudGroup.value).map(r => r.chapter))]
+    .sort((a, b) => quizOrder(inClass.find(r => r.chapter === a)) - quizOrder(inClass.find(r => r.chapter === b)));
+  const keep = cloudCh.value;
+  cloudCh.innerHTML = `<option value="">All quizzes</option>` + quizzes.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join("");
+  if (quizzes.includes(keep)) cloudCh.value = keep;
+}
+function applyCloudFilter() {
+  const cls = cloudCls.value, grp = cloudGroup.value, chap = cloudCh.value, view = cloudView.value;
+  const inScope = cloudAllRows.filter(r => (!cls || r.cls === cls) && (!grp || r.group === grp));
+  rows = inScope.filter(r => !chap || r.chapter === chap).slice().sort((a, b) => a.name.localeCompare(b.name));
+  const summary = document.getElementById("summary"), mb = document.getElementById("mbCard"), dash = document.getElementById("cloudDash");
+  document.getElementById("cloudViewRow").style.display = cloudAllRows.length ? "" : "none";
+  // overview: latest attempts per student + quiz
+  const names = [...new Set(inScope.map(r => r.name))];
+  const pcts = inScope.filter(r => r.total > 0).map(r => r.score / r.total);
+  const avg = pcts.length ? Math.round(100 * pcts.reduce((a, b) => a + b, 0) / pcts.length) : 0;
+  document.getElementById("cloudOverview").innerHTML = cloudAllRows.length
+    ? `<div><b>${names.length}</b>students</div><div><b>${inScope.length}</b>attempts</div><div><b>${avg}%</b>average</div>` : "";
+  const asQuiz = view === "quiz";
+  summary.style.display = asQuiz && rows.length ? "block" : "none";
+  mb.style.display = "none";
+  if (asQuiz) {
+    dash.innerHTML = "";
+    if (rows.length) {
+      renderSummary();
+      if (!chap) mb.style.display = "none";       // the ManageBac column only makes sense for one quiz
+    } else if (cloudAllRows.length) dash.innerHTML = `<div class="meta" style="padding:8px 0">No attempts for this selection yet. Choose another quiz or section, or switch the view to <b>Summary by student</b>.</div>`;
+    return;
+  }
+  dash.innerHTML = view === "student" ? byStudentHTML(inScope) : matrixHTML(inScope);
+}
+function pctClass(p) { return p >= 70 ? "#DDEFDC" : p >= 40 ? "#FBEBC8" : "#F6D5D5"; }
+function byStudentHTML(list) {
+  const by = {};
+  list.forEach(r => { (by[r.name] = by[r.name] || { name: r.name, cls: r.cls, rs: [] }).rs.push(r); });
+  const st = Object.values(by).sort((a, b) => a.cls.localeCompare(b.cls) || a.name.localeCompare(b.name));
+  if (!st.length) return `<div class="meta" style="padding:8px 0">No attempts for this selection yet.</div>`;
+  return `<table><thead><tr><th>#</th><th>Student</th><th>Class</th><th>Quizzes done</th><th>Average</th><th>Best</th><th>Lowest</th><th>Last submitted</th></tr></thead><tbody>` +
+    st.map((s, i) => {
+      const ps = s.rs.filter(r => r.total > 0).map(r => Math.round(100 * r.score / r.total));
+      const last = s.rs.map(r => r.date).sort().pop();
+      return `<tr><td>${i + 1}</td><td>${esc(s.name)}</td><td>${esc(s.cls)}</td><td class="num">${s.rs.length}</td>
+        <td class="num"><b>${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : 0}%</b></td>
+        <td class="num">${ps.length ? Math.max(...ps) + "%" : "–"}</td><td class="num">${ps.length ? Math.min(...ps) + "%" : "–"}</td>
+        <td>${esc(fmtDate(last))}</td></tr>`;
+    }).join("") + "</tbody></table>";
+}
+function matrixHTML(list) {
+  const by = {};
+  list.forEach(r => { (by[r.name] = by[r.name] || { name: r.name, cls: r.cls, cells: {} }).cells[r.chapter] = r; });
+  const st = Object.values(by).sort((a, b) => a.cls.localeCompare(b.cls) || a.name.localeCompare(b.name));
+  const cols = [...new Set(list.map(r => r.chapter))].sort((a, b) => quizOrder(list.find(r => r.chapter === a)) - quizOrder(list.find(r => r.chapter === b)));
+  if (!st.length) return `<div class="meta" style="padding:8px 0">No attempts for this selection yet.</div>`;
+  const head = `<thead><tr><th>Student</th>${cols.map(c => `<th style="white-space:nowrap">${esc(c)}</th>`).join("")}<th>Average</th></tr></thead>`;
+  const body = st.map(s => {
+    const ps = [];
+    const tds = cols.map(c => {
+      const r = s.cells[c];
+      if (!r || !r.total) return `<td class="num" style="background:#F3F3F1">–</td>`;
+      const p = Math.round(100 * r.score / r.total); ps.push(p);
+      return `<td class="num" title="${esc(s.name)} · ${esc(c)}: ${r.score}/${r.total}" style="background:${pctClass(p)}">${p}</td>`;
+    }).join("");
+    return `<tr><td style="white-space:nowrap">${esc(s.name)} <span class="cnt">${esc(s.cls)}</span></td>${tds}<td class="num"><b>${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : "–"}</b></td></tr>`;
+  }).join("");
+  const avgRow = `<tr><td><b>Class average</b></td>${cols.map(c => {
+    const ps = list.filter(r => r.chapter === c && r.total).map(r => 100 * r.score / r.total);
+    return `<td class="num">${ps.length ? Math.round(ps.reduce((a, b) => a + b, 0) / ps.length) : ""}</td>`;
+  }).join("")}<td></td></tr>`;
+  return `<div style="max-height:70vh; overflow:auto"><table>${head}<tbody>${body}${avgRow}</tbody></table></div>` +
+    `<div class="meta" style="margin-top:6px">Cell = latest score as a percentage. Green ≥ 70 · amber ≥ 40 · red &lt; 40 · grey = not attempted.</div>`;
+}
+function answerCells(r) {
+  if (r.paper === "MCQ") {
+    const ch = QUIZ_DATA.chapters.find(c => c.id === r.ch);
+    return String(r.detail || "").split("").map((c, i) => {
+      const k = "ABCD".indexOf(c), q = ch && ch.questions[i];
+      const right = k > -1 && q && (q.void || k === q.answer || (q.alt || []).indexOf(k) > -1);
+      const wrong = k > -1 && q && !right;
+      const bg = !q ? "#EEE" : right ? "#CDE7CD" : wrong ? "#F2C9C9" : "#EDEDED";
+      return `<span title="Q${i + 1}: ${k > -1 ? "chose " + c : "no answer"}${q && !q.void ? ", answer " + [q.answer].concat(q.alt || []).map(v => "ABCD"[v]).join("/") : ""}" style="display:inline-block; min-width:26px; margin:2px; padding:3px 4px; border-radius:4px; text-align:center; background:${bg}">${i + 1}<br><span style="font-size:11px">${k > -1 ? c : "–"}</span></span>`;
+    }).join("");
+  }
+  return String(r.detail || "").split("-").map((m, i) => `<span title="Question ${i + 1}" style="display:inline-block; min-width:34px; margin:2px; padding:3px 4px; border-radius:4px; text-align:center; background:${/^[1-9]/.test(m) ? "#DDEFDC" : "#EDEDED"}">Q${i + 1}<br><span style="font-size:11px">${esc(m || "–")}</span></span>`).join("");
+}
+function toggleAnswers(i) {
+  const tr = document.getElementById("ans" + i);
+  if (tr) { tr.remove(); return; }
+  const row = document.querySelector("#tbl tbody tr[data-i='" + i + "']");
+  if (!row) return;
+  const el = document.createElement("tr");
+  el.id = "ans" + i;
+  el.innerHTML = `<td></td><td colspan="5" style="background:#FAFAF8">${answerCells(rows[i])}</td>`;
+  row.after(el);
+}
+const cloudCls = document.getElementById("cloudCls"), cloudGroup = document.getElementById("cloudGroup"),
+      cloudCh = document.getElementById("cloudCh"), cloudView = document.getElementById("cloudView");
+cloudCls.addEventListener("change", () => { fillQuizFilter(); applyCloudFilter(); });
+cloudGroup.addEventListener("change", () => { fillQuizFilter(); applyCloudFilter(); });
+cloudCh.addEventListener("change", applyCloudFilter);
+</script>
+</body>
+</html>

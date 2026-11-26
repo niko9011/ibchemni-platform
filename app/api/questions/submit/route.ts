@@ -9,12 +9,15 @@ export async function POST(request: Request) {
   const formData = await request.formData();
   const topic = String(formData.get("topic") || "").trim();
   const question = String(formData.get("question") || "").trim();
-  const fileUrl = String(formData.get("fileUrl") || "").trim();
+  const fileKey = String(formData.get("fileKey") || "").trim();
 
   if (!topic || !question) return NextResponse.redirect(new URL("/questions", request.url), 303);
+  if (fileKey && !fileKey.startsWith(`question-submissions/${user.id}/`)) {
+    return NextResponse.redirect(new URL("/questions?uploadError=1", request.url), 303);
+  }
 
   await prisma.questionSubmission.create({
-    data: { studentId: user.id, topic, question, fileUrl: fileUrl || null }
+    data: { studentId: user.id, topic, question, fileUrl: fileKey ? `cos:${fileKey}` : null }
   });
 
   return NextResponse.redirect(new URL("/questions?submitted=1", request.url), 303);

@@ -1,9 +1,13 @@
 export const dynamic = "force-dynamic";
 
 const links = [
-  ["Question Hub", "/questions", "Search IB Chemistry questions by chapter."],
-  ["About & Stories", "/about", "Meet IB chem Ni and read student experiences."],
-  ["Assessment & Contact", "/contact", "Get study advice or contact IB chem Ni."],
+  ["Past Paper Questions", "/past-paper-questions", "Real exam questions grouped by syllabus unit, with instant marking and mark schemes."],
+  ["Topical by Chapter", "/topical", "Purchased chapter courses: videos, handouts and the matching question bank."],
+  ["Full Past Papers", "/past-paper-sets", "Complete Paper 1 / Paper 2 sets for SL and HL, timed-style practice."],
+  ["Exam Sprint", "/exam-sprint", "Paper 1B and Paper 2 special training for the final sprint."],
+  ["Question Hub", "/questions", "Ask any IB Chemistry question — answered by IB chem Ni."],
+  ["IA Programme", "/ia", "The complete Internal Assessment series with draft feedback."],
+  ["About & Reviews", "/about", "Meet IB chem Ni and read student and parent experiences."],
   ["Course Login", "/login", "Enter purchased chapter courses."]
 ];
 
@@ -16,7 +20,7 @@ export default function HomePage() {
           <h1 className="mobile-title mt-8 text-6xl font-semibold tracking-tight text-ink md:text-7xl">Master IB Chemistry through a structured learning system.</h1>
           <p className="mt-6 max-w-2xl text-xl leading-9 text-muted">Built by IB chem Ni for students who want clear explanations, stronger foundations, and exam-focused progress.</p>
           <div className="mt-8 grid gap-3 sm:flex sm:flex-wrap sm:gap-4">
-            <a href="/questions" className="min-h-12 rounded-full bg-blue px-6 py-4 text-center text-sm font-bold text-white">Explore Question Hub</a>
+            <a href="/past-paper-questions" className="min-h-12 rounded-full bg-blue px-6 py-4 text-center text-sm font-bold text-white">Start Practising</a>
             <a href="/contact#assessment" className="min-h-12 rounded-full border border-blue/20 bg-white px-6 py-4 text-center text-sm font-bold text-ink">Get Free Assessment</a>
           </div>
         </div>

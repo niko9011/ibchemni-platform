@@ -3,14 +3,19 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "IB chem Ni Learning Platform",
-  description: "IB Chemistry learning platform with student stories, a searchable Question Hub, free assessment, and course access."
+  description: "IB Chemistry learning platform: teacher profile and reviews, Question Hub, past-paper and topical question practice, recorded course access, exam sprint (Paper 1B / Paper 2) and the IA programme."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const publicLinks = [
-    ["About & Stories", "/about"],
+    ["About & Reviews", "/about"],
     ["Question Hub", "/questions"],
-    ["Assessment & Contact", "/contact"]
+    ["Past Paper Questions", "/past-paper-questions"],
+    ["Topical by Chapter", "/topical"],
+    ["Full Past Papers", "/past-paper-sets"],
+    ["Exam Sprint", "/exam-sprint"],
+    ["IA Programme", "/ia"],
+    ["Contact", "/contact"]
   ];
 
   return (
@@ -19,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <header className="sticky top-0 z-50 border-b border-blue/10 bg-white/90 backdrop-blur">
           <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
             <a href="/" className="text-lg font-semibold text-ink">IB chem Ni</a>
-            <nav className="hidden items-center gap-6 text-sm font-semibold text-muted lg:flex">
+            <nav className="hidden items-center gap-5 text-sm font-semibold text-muted lg:flex">
               {publicLinks.map(([label, href]) => (
                 <a key={href} href={href} className="transition hover:text-ink">{label}</a>
               ))}
