@@ -19,17 +19,18 @@ const SUBJECT_TO_QUIZ_SL: Record<string, string[]> = {
 };
 
 const SUBJECT_TO_QUIZ_HL: Record<string, string[]> = {
-  "matter-and-atomic-structure": ["hch2", "hp2ch2", "ns31s1hl", "ns31s1hl-sq"],
-  "mole-and-stoichiometry": ["hch1", "hp2ch1"],
-  "chemical-bonding": ["hch4", "hp2ch4", "ns2hl", "ns2hl-sq"],
-  "periodic-trends": ["hch3", "hp2ch3", "ns31s1hl", "ns31s1hl-sq"],
-  "organic-structure": ["hch10", "hp2ch10", "norghl", "norghl-sq"],
-  "thermochemistry": ["hch5", "hp2ch5", "nr1hl", "nr1hl-sq"],
-  "kinetics": ["hch6", "hp2ch6", "nr22hl", "nr22hl-sq"],
-  "chemical-equilibrium": ["hch7", "hp2ch7", "nr23hl", "nr23hl-sq"],
-  "acid-and-base": ["hch8", "hp2ch8", "nr31hl", "nr31hl-sq"],
-  "redox": ["hch9", "hp2ch9", "nr32hl", "nr32hl-sq"],
-  "organic-reactions": ["hp2ch10", "norghl", "norghl-sq"]
+  // HL topical bank is organised in the same new-syllabus units as SL (hu*, hp2u*) since 2026-11-27
+  "matter-and-atomic-structure": ["hu1a", "hp2u1a", "ns31s1hl", "ns31s1hl-sq"],
+  "mole-and-stoichiometry": ["hu1b", "hp2u1b"],
+  "chemical-bonding": ["hu2", "hp2u2", "ns2hl", "ns2hl-sq"],
+  "periodic-trends": ["hu3", "hp2u3", "ns31s1hl", "ns31s1hl-sq"],
+  "organic-structure": ["hu4", "hp2u4", "norghl", "norghl-sq"],
+  "thermochemistry": ["hu5", "hp2u5", "nr1hl", "nr1hl-sq"],
+  "kinetics": ["hu6", "hp2u6", "nr22hl", "nr22hl-sq"],
+  "chemical-equilibrium": ["hu7", "hp2u7", "nr23hl", "nr23hl-sq"],
+  "acid-and-base": ["hu8", "hp2u8", "nr31hl", "nr31hl-sq"],
+  "redox": ["hu9", "hp2u9", "nr32hl", "nr32hl-sq"],
+  "organic-reactions": ["hu10", "hp2u10", "norghl", "norghl-sq"]
 };
 
 /** Quiz chapter ids unlocked by owning the given chapter product (level + slug). */

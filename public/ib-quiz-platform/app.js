@@ -44,10 +44,10 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
    (used by the ibchemni personal-site embeds). Entries never include Pre-IB.
    No entry parameter = full app, behaviour unchanged. */
 const ENTRY_CFG = {
-  "topical-units":   { levels: ["SL"], papers: ["MCQ", "P2"] },
+  "topical-units":   { levels: ["SL", "HL"], papers: ["MCQ", "P2"] },   // HL topical bank reorganised to units 2026-11-27
   "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"] },
-  "exam-sprint-p1b": { levels: ["SL"], papers: ["P1B"] },
-  "exam-sprint-p2":  { levels: ["SL"], papers: ["P2"] }
+  "exam-sprint-p1b": { levels: ["SL", "HL"], papers: ["P1B"] },
+  "exam-sprint-p2":  { levels: ["SL", "HL"], papers: ["P2"] }
 };
 const ENTRY = (() => {
   if (typeof location === "undefined") return null;
