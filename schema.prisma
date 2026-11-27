@@ -33,6 +33,8 @@ model User {
   enrollments  Enrollment[]
   auditLogs    AuditLog[]
   questions    QuestionSubmission[]
+  practiceAttempts PracticeAttempt[]
+  quizGrants   QuizGrant[]
 }
 
 model Product {
@@ -152,4 +154,36 @@ model DiagnosisRequest {
   status          String   @default("New")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+}
+
+// One finished quiz attempt on the practice pages. Written by the embedded quiz app for the
+// signed-in student; the answers are kept so the attempt can be reviewed later.
+model PracticeAttempt {
+  id           String   @id @default(cuid())
+  userId       String
+  chapterId    String
+  chapterTitle String
+  level        String
+  paper        String
+  entry        String
+  score        Int
+  total        Int
+  answers      Json?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+// A practice set the teacher unlocked by hand for one student (questions only; videos and
+// handouts stay with Enrollment). itemKey = "topic:<level>:<slug>" or "bank:<name>".
+model QuizGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  itemKey   String
+  note      String?
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, itemKey])
 }
