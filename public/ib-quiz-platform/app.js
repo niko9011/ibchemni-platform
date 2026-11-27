@@ -25,7 +25,8 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
   if (h === "#sets")  { state.browse.level = "SLP"; state.browse.paper = "MCQ"; }
   if (h === "#p1b")   { state.browse.level = "SL"; state.browse.paper = "P1B"; }
   if (h === "#p2")    { state.browse.level = "SL"; state.browse.paper = "P2"; }
-  const q = new URLSearchParams(location.search).get("code");
+  // embeds never take a code (ENTRY itself is declared further down, so look at the URL here)
+  const q = new URLSearchParams(location.search).has("entry") ? "" : new URLSearchParams(location.search).get("code");
   if (q) {
     try {
       const obj = decodeAccess(q);
@@ -44,16 +45,17 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
    (used by the ibchemni personal-site embeds). Entries never include Pre-IB.
    No entry parameter = full app, behaviour unchanged. */
 const ENTRY_CFG = {
-  "topical-units":   { levels: ["SL", "HL"], papers: ["MCQ", "P2"] },   // HL topical bank reorganised to units 2026-11-27
-  "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"] },
-  "exam-sprint-p1b": { levels: ["SL", "HL"], papers: ["P1B"] },
-  "exam-sprint-p2":  { levels: ["SL", "HL"], papers: ["P2"] }
+  "topical-units":   { levels: ["SL", "HL"], papers: ["MCQ", "P2"], home: "/topical" },   // HL topical bank reorganised to units 2026-11-27
+  "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"], home: "/past-paper-sets" },
+  "exam-sprint-p1b": { levels: ["SL", "HL"], papers: ["P1B"], home: "/exam-sprint" },
+  "exam-sprint-p2":  { levels: ["SL", "HL"], papers: ["P2"], home: "/exam-sprint" }
 };
 const ENTRY = (() => {
   if (typeof location === "undefined") return null;
-  const e = new URLSearchParams(location.search).get("entry") || "";
+  const params = new URLSearchParams(location.search);
+  const e = params.get("entry") || "";
   const cfg = ENTRY_CFG[e];
-  return cfg ? { levels: cfg.levels.slice(), papers: cfg.papers.slice() } : null;
+  return cfg ? { name: e, levels: cfg.levels.slice(), papers: cfg.papers.slice(), home: cfg.home, review: params.get("review") || "" } : null;
 })();
 if (ENTRY) {
   if (ENTRY.levels.indexOf(state.browse.level) === -1) state.browse.level = ENTRY.levels[0];
@@ -588,6 +590,115 @@ function tasksHTML() {
   return head + items;
 }
 
+/* ---------- platform embed: access, saved attempts and review come from the ibchemni site ---------- */
+/* In embed mode the quiz asks the site's own API (same origin, session cookie) what the signed-in
+   student may open, reports every finished attempt there, and can replay one of them read-only. */
+let platformReady = false, platformSignedIn = false, platformSaveNote = "";
+async function platformJson(url, options) {
+  const r = await fetch(url, Object.assign({ credentials: "same-origin" }, options || {}));
+  let data = null;
+  try { data = await r.json(); } catch (e) { /* non-JSON error page */ }
+  return { status: r.status, data: data || {} };
+}
+/* Attempts that could not be saved (offline, signed out meanwhile) wait here and are sent again
+   on the next visit. */
+async function sendAttempt(payload) {
+  const r = await platformJson("/api/practice/attempts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+  if (r.status === 401) platformSignedIn = false;
+  return !!(r.data && r.data.ok);
+}
+function queuePendingAttempt(payload) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem("pendingAttempts") || "[]"); } catch (e) {}
+  list.push(payload);
+  localStorage.setItem("pendingAttempts", JSON.stringify(list.slice(-20)));
+}
+async function flushPendingAttempts() {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem("pendingAttempts") || "[]"); } catch (e) {}
+  if (!list.length) return;
+  const rest = [];
+  for (const payload of list) {
+    let sent = false;
+    if (platformSignedIn) {
+      try { sent = await sendAttempt(payload); } catch (e) { /* offline: keep it for later */ }
+    }
+    if (!sent) rest.push(payload);
+  }
+  localStorage.setItem("pendingAttempts", JSON.stringify(rest));
+}
+async function platformReport(payload) {
+  let sent = false;
+  try { sent = await sendAttempt(payload); } catch (e) { /* offline */ }
+  if (!sent) throw new Error("attempt not saved");
+}
+function setSaveNote(html) {
+  platformSaveNote = html;
+  const el = document.getElementById("saveNote");
+  if (el) el.innerHTML = html;
+}
+/* The account's latest attempt of every chapter, so cards show "last score" on any device. */
+async function hydrateFromPlatform() {
+  const r = await platformJson("/api/practice/attempts");
+  if (!(r.data && r.data.ok)) return;                          // list unreadable: keep what this device has
+  const latest = r.data.latest || {};
+  for (let i = localStorage.length - 1; i >= 0; i--) {        // this device now mirrors this account only
+    const k = localStorage.key(i);
+    if (k && k.indexOf("attempt:") === 0) localStorage.removeItem(k);
+  }
+  Object.keys(latest).forEach(id => {
+    const saved = latest[id].saved;
+    if (saved && saved.score !== undefined) localStorage.setItem("attempt:" + id, JSON.stringify(saved));
+  });
+}
+function renderPlatformReviewFailed(status) {
+  app.innerHTML = `
+  <header class="site small"><div class="inner"><div class="back" onclick="goHome()">← Back</div><h1>Attempt not available</h1></div></header>
+  <main class="wrap"><section class="card"><div class="meta">${status === 401
+    ? "Sign in to see this attempt." : status === 404
+    ? "This attempt does not exist, or it belongs to another account." : "The attempt could not be loaded. Please try again in a moment."}</div></section></main>`;
+}
+function showPlatformReview(a) {
+  const ch = findChapter(a.chapterId), saved = a.answers || {};
+  if (!ch || !saved.answers || saved.kind === "frq") { renderPlatformReviewFailed(404); return; }
+  state.browse = { level: levelKeyOf(ch), paper: ch.paper || "MCQ" };
+  const idx = activeChapters().indexOf(ch);
+  if (idx < 0) { renderPlatformReviewFailed(404); return; }
+  platformSignedIn = true;
+  state = Object.assign({}, state, { view: "quiz", chapter: idx, name: localStorage.getItem("stuName") || "",
+    answers: saved.answers || {}, marks: saved.marks || {}, frqResults: null, page: 0, submitted: true, marking: false,
+    reviewDate: fmtWhen(a.createdAt), reviewOnly: true });
+  render(); window.scrollTo(0, 0);
+}
+async function platformBoot() {
+  if (!ENTRY) return;
+  localStorage.removeItem("access");                 // never carry another account's unlock over
+  try {
+    const r = await platformJson("/api/quiz/access?entry=" + encodeURIComponent(ENTRY.name));
+    platformSignedIn = !!(r.data && r.data.ok);
+    if (platformSignedIn) {
+      localStorage.setItem("access", JSON.stringify({ cls: r.data.cls, allow: r.data.allow || [] }));
+      localStorage.setItem("stuName", r.data.name || "");
+      state.name = r.data.name || "";
+    } else {
+      localStorage.removeItem("stuName");
+    }
+    if (ENTRY.review) {                              // read-only replay of one saved attempt
+      const a = await platformJson("/api/practice/attempts/" + encodeURIComponent(ENTRY.review));
+      if (a.data && a.data.ok && a.data.attempt) showPlatformReview(a.data.attempt); else renderPlatformReviewFailed(a.status);
+      return;
+    }
+    if (platformSignedIn) {
+      await hydrateFromPlatform();
+      flushPendingAttempts();
+    }
+  } catch (err) {
+    console.warn("platform access unavailable:", err && err.message || err);
+  }
+  platformReady = true;
+  if (state.view === "home") render();
+}
+
 /* ---------- access codes ---------- */
 function hash6(s) {
   let h = 5381;
@@ -621,7 +732,19 @@ function getAccess() {
   return a;
 }
 function currentClass() { return (session() && session().cls) || (getAccess() || {}).cls || ""; }
+/* A rule from the platform is a quiz chapter id, "level:<SL|HL|SLP|HLP>" or "paper:<MCQ|P2|P1B>". */
+function ruleOpens(rule, ch) {
+  if (rule === "*") return true;
+  if (rule === ch.id) return true;
+  if (rule.indexOf("level:") === 0) return (ch.level2 || "SL") === rule.slice(6);
+  if (rule.indexOf("paper:") === 0) return (ch.paper || "MCQ") === rule.slice(6);
+  return false;
+}
 function isAllowed(ch) {
+  if (ENTRY) {                                   // embed: only what the platform opened for this session
+    const a = getAccess();
+    return !!a && (a.allow || []).some(r => ruleOpens(r, ch));
+  }
   if (ownedIds.has(ch.id) || assignedIds.has(ch.id)) return true;   // finished earlier, or assigned to the class
   if (ch._src && ch._src.some(id => assignedIds.has(id))) return true;
   const a = getAccess();
@@ -650,6 +773,12 @@ function clearAccess() {
   render();
 }
 function lockedClick() {
+  if (ENTRY) {
+    alert(platformSignedIn
+      ? "This set is not open for your account yet. Ask IB chem Ni to unlock it."
+      : "Sign in first: the sets opened for your account appear here after you sign in.");
+    return;
+  }
   alert("This section is locked. Please enter the access code your teacher gave you.");
   const el = document.getElementById("accessInput");
   if (el) el.focus();
@@ -681,6 +810,12 @@ function render() {
 }
 
 function renderHome() {
+  if (ENTRY && !platformReady) {                 // waiting for the platform to say what this session may open
+    app.innerHTML = `
+  <header class="site"><div class="inner"><div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div><h1>Choose your chapter</h1></div></header>
+  <main class="wrap"><section class="card"><div class="meta">Opening your chapters…</div></section></main>`;
+    return;
+  }
   const { level, paper } = state.browse;
   const all = activeChapters();
   const group = all.map((ch, i) => ({ ch, i }))
@@ -694,7 +829,9 @@ function renderHome() {
     : `<button class="btn-auth wide" onclick="openAccount()">Sign in with your school email</button>
        <div class="meta" style="margin-top:6px">Sign in to open the tasks your teacher sets for your class and to keep your results.</div>`;
   const authBar = ENTRY
-    ? ""
+    ? (platformSignedIn
+      ? `<div class="authbar"><button class="btn-auth light" onclick="platformGo('/my-practice')">My practice record</button></div>`
+      : `<div class="authbar"><button class="btn-auth light" onclick="platformGo('/login')">Sign in</button></div>`)
     : me
     ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
     : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
@@ -722,6 +859,7 @@ function renderHome() {
     </div>`;
   }).join("");
 
+  const openHere = group.filter(x => isAllowed(x.ch)).length;
   const emptyCard = hasBank ? "" : `
     <div class="chapter placeholder">
       <div>
@@ -741,9 +879,13 @@ function renderHome() {
           <button onclick="applyCode()">Unlock</button>
         </div></details>`;
   const accBar = ENTRY
-    ? `<div class="codebar"><div class="acc-status" id="accStatus">${acc
-        ? `Open for you: <b>${acc.allow[0] === "*" ? "all chapters" : acc.allow.length + " chapter(s)"}</b> — results are kept on this device.`
-        : `Chapters open here automatically once your teacher unlocks them for your account.`}</div></div>`
+    ? `<div class="codebar"><div class="acc-status" id="accStatus">${!platformSignedIn
+        ? `<b>Sign in</b> to open the sets unlocked for your account and to keep your results.`
+        : acc && acc.allow[0] === "*"
+          ? `Open for you: <b>all chapters</b> (teacher).`
+          : openHere
+            ? `Open for you here: <b>${openHere} of ${group.length}</b> chapter${group.length === 1 ? "" : "s"}. Results are saved to your practice record.`
+            : `No chapter here is open for your account yet. Ask IB chem Ni to unlock it.`}</div></div>`
     : `
     <div class="codebar">
       <div class="acc-status" id="accStatus">${me
@@ -816,6 +958,11 @@ function openChapter(i) {
 
 function reviewAttempt() { state.view = "quiz"; render(); window.scrollTo(0, 0); }
 function startFresh() {
+  if (ENTRY) {
+    const ch = activeChapters()[state.chapter];
+    if (!ch || !isAllowed(ch)) { lockedClick(); return; }
+    if (ENTRY.review) { platformGo(ENTRY.home); return; }       // practising again starts from the chapter list
+  }
   state.answers = {}; state.marks = {}; state.frqResults = null; state.submitted = false; state.marking = false; state.reviewDate = null; state.reviewOnly = false; state.page = 0;
   render(); window.scrollTo(0, 0);
 }
@@ -937,7 +1084,8 @@ function renderQuiz() {
   <main class="wrap">
     ${state.submitted ? "" : `<div class="namebar">
       <label>Your name</label>
-      ${session() ? `<b>${escHTML(session().name)}</b><a class="tlink" style="margin-left:8px" onclick="signOut()">not you? sign out</a>` : nameField()}
+      ${ENTRY ? `<b>${escHTML(state.name)}</b>`
+        : session() ? `<b>${escHTML(session().name)}</b><a class="tlink" style="margin-left:8px" onclick="signOut()">not you? sign out</a>` : nameField()}
     </div>`}
     ${reviewBar}
     <div class="progress"><div class="progress-bar"><i id="progBar" style="width:${Math.round(100 * answered / total)}%"></i></div>
@@ -1031,14 +1179,22 @@ function typeAns(ta) {
   if (txt) txt.textContent = `${answered} / ${total} answered`;
 }
 
-function goHome() { state.view = "home"; render(); window.scrollTo(0, 0); }
+function goHome() {
+  if (ENTRY && ENTRY.review) { platformGo("/my-practice"); return; }   // leaving a replay goes back to the record
+  state.view = "home"; render(); window.scrollTo(0, 0);
+}
+function platformGo(url) {
+  try { if (window.top !== window) { window.top.location.href = url; return; } } catch (e) { /* framed elsewhere: move this frame */ }
+  window.location.href = url;
+}
 
 async function submitQuiz() {
   const el = document.getElementById("stuName");
-  if (session()) state.name = session().name;
+  if (ENTRY) state.name = localStorage.getItem("stuName") || "";
+  else if (session()) state.name = session().name;
   else if (el) state.name = el.value.trim();
   if (!state.name) { alert("Please enter your name first."); el && el.focus(); return; }
-  if (cloudOn() && (!session() || session().name !== state.name) && await hasAccount(state.name)) {
+  if (!ENTRY && cloudOn() && (!session() || session().name !== state.name) && await hasAccount(state.name)) {
     alert(state.name + " already has an account. Sign in with your name and PIN to submit as " + state.name + ".");
     return;
   }
@@ -1145,6 +1301,15 @@ function finish() {
       : { score: s, total: t, date: payload.d, kind: "mcq", answers: state.answers };
   if (!state.reviewOnly) {                       // reviewing an old attempt must not overwrite or re-send it
     localStorage.setItem("attempt:" + ch.id, JSON.stringify(saved));
+    if (ENTRY) {
+      platformSaveNote = "Saving this attempt to your practice record…";
+      platformReport({ chapterId: ch.id, chapterTitle: ch.title, level: levelKeyOf(ch), paper: ch.paper || "MCQ", entry: ENTRY.name, score: s, total: t, saved })
+        .then(() => setSaveNote("This attempt is saved to your <b>practice record</b>; your teacher can see it there."))
+        .catch(() => {
+          queuePendingAttempt({ chapterId: ch.id, chapterTitle: ch.title, level: levelKeyOf(ch), paper: ch.paper || "MCQ", entry: ENTRY.name, score: s, total: t, saved });
+          setSaveNote("This attempt could <b>not</b> be saved just now. It is kept on this device and will be added to your practice record next time you open a practice page.");
+        });
+    } else {
     ownedIds.add(ch.id);
     cloudReportAsync({
       n: payload.n, cls: currentClass(), ch: ch.id, title: ch.title,
@@ -1152,6 +1317,7 @@ function finish() {
       s: s, t: t, detail: payload.a, date: payload.d, data: JSON.stringify(saved)
     }).then(() => cloudMarkSynced(ch.id, payload.d))
       .catch(err => console.warn("cloud report skipped:", err && err.message || err));
+    }
   }
 
   app.innerHTML = `
@@ -1168,11 +1334,11 @@ function finish() {
       <div class="legend"><span class="key ok"></span>${isFRQ || isP2 ? "full marks" : "correct"} <span class="key no"></span>${isFRQ || isP2 ? "no marks" : "incorrect"}</div>
     </section>
     <section class="card">
-      <div class="listhead">Score report for your teacher</div>
-      <p class="footnote" style="margin-top:0">Copy this code and paste it to your teacher (or send a screenshot of this page).</p>
-      <div class="codebox" id="codeBox">${code}</div>
+      <div class="listhead">${ENTRY ? "Saved to your practice record" : "Score report for your teacher"}</div>
+      ${ENTRY ? `<p class="footnote" style="margin-top:0" id="saveNote">${platformSaveNote}</p>` : `<p class="footnote" style="margin-top:0">Copy this code and paste it to your teacher (or send a screenshot of this page).</p>`}
+      ${ENTRY ? "" : `<div class="codebox" id="codeBox">${code}</div>`}
       <div class="row">
-        <button onclick="copyCode(this)">Copy code</button>
+        ${ENTRY ? `<button class="ghost" onclick="platformGo('/my-practice')">My practice record</button>` : `<button onclick="copyCode(this)">Copy code</button>`}
         <button class="ghost" onclick="reviewAttempt()">Review my answers</button>
         <button class="ghost" onclick="goHome()">Back to chapters</button>
       </div>
@@ -1191,5 +1357,10 @@ function copyCode(btn) {
 
 refreshOwned();
 refreshAssigned();
-render();
-backfillLocalAttempts();
+if (ENTRY) {
+  render();                                      // "Opening your chapters…" until the platform answers
+  window.__platformReady = platformBoot();       // nothing is sent to school storage in an embed
+} else {
+  render();
+  backfillLocalAttempts();
+}

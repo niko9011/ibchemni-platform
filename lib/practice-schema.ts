@@ -44,9 +44,11 @@ const statements = [
 let ensured: Promise<void> | null = null;
 
 async function tablesExist() {
-  const rows = await prisma.$queryRaw<{ practice: string | null; grants: string | null }[]>[]
-    `SELECT to_regclass('"PracticeAttempt"')::text AS practice, to_regclass('"QuizGrant"')::text AS grants`;
-  return !!rows[0] && !!rows[0].practice && !!rows[0].grants;
+  const rows = (await prisma.$queryRaw`SELECT to_regclass('"PracticeAttempt"')::text AS practice, to_regclass('"QuizGrant"')::text AS grants`) as unknown as {
+    practice: string | null;
+    grants: string | null;
+  }[];
+  return rows.length > 0 && !!rows[0].practice && !!rows[0].grants;
 }
 
 export function ensurePracticeSchema(): Promise<void> {
@@ -67,4 +69,23 @@ export function ensurePracticeSchema(): Promise<void> {
     });
   }
   return ensured;
+}
+
+function isMissingTable(error: unknown) {
+  const code = (error as { code?: string } | null)?.code;
+  return code === "P2021" || code === "P2022";
+}
+
+/** Runs a query with the practice tables in place; rebuilds them and retries once if they have
+    disappeared since this instance last checked. */
+export async function withPracticeSchema<T>(run: () => Promise<T>): Promise<T> {
+  await ensurePracticeSchema();
+  try {
+    return await run();
+  } catch (error) {
+    if (!isMissingTable(error)) throw error;
+    ensured = null;
+    await ensurePracticeSchema();
+    return run();
+  }
 }

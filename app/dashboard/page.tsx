@@ -29,9 +29,13 @@ export default async function DashboardPage() {
           <h1 className="mobile-title mt-2 text-5xl font-semibold tracking-tight text-ink">Welcome, {user.name}</h1>
           <p className="mt-4 text-muted">Only chapters opened by IB chem Ni appear as unlocked.</p>
         </div>
-        <form action="/api/auth/logout" method="post" className="w-full sm:w-auto">
-          <button className="min-h-12 w-full rounded-full border border-blue/20 bg-white px-5 py-3 text-sm font-bold text-muted sm:w-auto">Logout</button>
-        </form>
+        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:items-end">
+          <a href="/my-practice" className="min-h-12 rounded-full bg-blue px-5 py-3 text-center text-sm font-bold text-white">My practice record</a>
+          <a href="/topical" className="min-h-12 rounded-full border border-blue/20 bg-white px-5 py-3 text-center text-sm font-bold text-ink">Practise by chapter</a>
+          <form action="/api/auth/logout" method="post" className="sm:w-auto">
+            <button className="min-h-12 w-full rounded-full border border-blue/20 bg-white px-5 py-3 text-sm font-bold text-muted sm:w-auto">Logout</button>
+          </form>
+        </div>
       </div>
 
       <section className="mt-12">
