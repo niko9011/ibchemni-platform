@@ -5,7 +5,8 @@ import { quizChapterIdsFor } from "@/lib/quiz-code";
 /* Which practice chapters a student may open, and where the permission comes from:
    purchased chapter courses (Enrollment) and sets the teacher unlocked by hand (QuizGrant).
    Everything resolves to "rules" that the embedded quiz app matches chapters against:
-   a quiz chapter id, "level:<SL|HL|SLP|HLP>" or "paper:<MCQ|P2|P1B>". */
+   a quiz chapter id, "level:<SL|HL|SLP|HLP>", "paper:<MCQ|P2|P1B>" or "course:<id>"
+   (an interactive Topical Learning course). */
 
 export const PRACTICE_ENTRIES = ["topical-units", "past-paper-sets", "exam-sprint-p1b", "exam-sprint-p2"] as const;
 export type PracticeEntry = (typeof PRACTICE_ENTRIES)[number];
@@ -34,6 +35,7 @@ export const UNLOCK_ITEMS: UnlockItem[] = [
     label: `HL ${no}. ${title} (with the SL material)`,
     group: "Topical · HL"
   })),
+  { key: "course:tl-s32", label: "S3.2 Organic Chemistry: Structure — interactive Topical Learning course", group: "Topical learning" },
   { key: "bank:past-papers", label: "Full past papers · every set, SL and HL", group: "Past papers" },
   { key: "bank:p1b", label: "Paper 1B sprint · SL and HL", group: "Exam sprint" },
   { key: "bank:p2", label: "Paper 2 sprint · every structured-question set", group: "Exam sprint" }
@@ -53,10 +55,12 @@ export function topicKey(level: string, productIdValue: string): string {
   return `topic:${level}:${productIdValue.replace(/^(sl|hl)-/, "")}`;
 }
 
-/** Rules opened by one item. Unknown items open nothing. */
+/** Rules opened by one item. Unknown items open nothing. Course items pass their own
+    "course:<id>" rule straight through — the quiz app matches it against its course list. */
 export function rulesForItem(key: string): string[] {
   const topic = /^topic:(SL|HL):([a-z0-9-]+)$/.exec(key);
   if (topic) return quizChapterIdsFor(topic[1], topic[2]);
+  if (key.indexOf("course:") === 0) return [key];
   return (BANKS[key] || []).slice();
 }
 

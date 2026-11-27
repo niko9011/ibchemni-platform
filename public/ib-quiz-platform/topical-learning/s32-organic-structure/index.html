@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unit 4 · S3.2 Organic Chemistry — Interactive Self-Study Course</title>
+<!--
+  IB Chemistry · Structure 3.2 interactive self-study course
+  Backbone: Cambridge Chemistry for the IB Diploma Coursebook, Ch. 11
+  Deploy: copy this whole folder (index.html + img/) into your site's static
+  assets, e.g. public/unit4-s32-course/  ->  /unit4-s32-course/index.html
+  Progress is stored in the student's own browser (localStorage), no data leaves the device.
+-->
+<style>
+:root{
+  --navy:#0E2A47; --blue:#1F6FB2; --gold:#B8892F; --ink:#1a1a1a;
+  --bg:#F4F7FB; --card:#ffffff; --line:#d8e1ec; --grey:#5A6C80;
+  --ok:#1e8e5a; --bad:#c0392b;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font:15px/1.55 "Segoe UI",Calibri,-apple-system,sans-serif;color:var(--ink);background:var(--bg)}
+header.top{position:sticky;top:0;z-index:50;background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(14,42,71,.25)}
+.topbar{display:flex;align-items:center;gap:14px;max-width:980px;margin:0 auto;padding:10px 14px}
+.brand{font-weight:700;letter-spacing:.5px;white-space:nowrap}
+.brand small{display:block;font-weight:400;font-size:11px;color:#cfe0f2;letter-spacing:0}
+nav.tabs{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:0;background:transparent;color:#cfe0f2;padding:8px 13px;border-radius:8px;cursor:pointer;font-size:14px;white-space:nowrap;font-family:inherit}
+nav.tabs button:hover{background:rgba(255,255,255,.12)}
+nav.tabs button.on{background:var(--gold);color:#fff;font-weight:600}
+#annoToggle{margin-left:auto;border:1.5px solid var(--gold);background:transparent;color:#F2C879;padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit;font-size:13px;white-space:nowrap}
+#annoToggle.on{background:var(--gold);color:#fff}
+#annoBar{position:fixed;top:56px;right:12px;z-index:95;background:var(--navy);color:#fff;border-radius:10px;padding:8px 10px;display:none;box-shadow:0 4px 14px rgba(0,0,0,.3);font-size:13px}
+#annoBar.on{display:flex;align-items:center;gap:7px;flex-wrap:wrap;max-width:300px}
+#annoBar .pc{width:22px;height:22px;border-radius:50%;border:2px solid #fff;cursor:pointer}
+#annoBar .pc.on{outline:2px solid #F2C879}
+#annoBar button.ab{font:inherit;font-size:12px;border:0;border-radius:6px;padding:5px 9px;cursor:pointer;background:rgba(255,255,255,.15);color:#fff}
+#annoBar button.ab.warn{background:var(--bad)}
+#annoCanvas{position:fixed;inset:0;z-index:90;display:none;touch-action:none;cursor:crosshair}
+#annoCanvas.on{display:block}
+.pad{border:1px solid var(--line);border-radius:10px;background:#fff;margin-top:8px}
+.padtools{display:flex;align-items:center;gap:7px;padding:6px 9px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.padtools .pc{width:20px;height:20px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #9AA8B8;cursor:pointer}
+.padtools .pc.on{outline:2px solid var(--blue)}
+.padtools .pw{border:1.5px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;padding:2px 8px}
+.padtools .pw.on{border-color:var(--blue);background:#eaf3fc}
+.padtools .pe,.padtools .pcx{border:1.5px solid var(--line);background:#fff;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;padding:3px 9px}
+.padtools .pcx{color:var(--bad)}
+.pad canvas{display:block;width:100%;height:300px;touch-action:none;cursor:crosshair;border-radius:0 0 10px 10px}
+.pad.small canvas{height:220px}
+.wtabs{display:flex;gap:6px;margin-top:8px}
+.wtabs button{font:inherit;font-size:13px;border:1.5px solid var(--line);background:#fff;border-radius:8px 8px 0 0;padding:6px 14px;cursor:pointer;color:var(--grey)}
+.wtabs button.on{border-color:var(--blue);color:var(--blue);font-weight:600;background:#eaf3fc}
+main{max-width:980px;margin:0 auto;padding:18px 14px 80px}
+h1{font-size:24px;color:var(--navy);margin:6px 0}
+h2{font-size:19px;color:var(--navy);margin:26px 0 10px;border-bottom:2px solid var(--gold);padding-bottom:4px}
+h3{font-size:16px;color:var(--blue);margin:14px 0 6px}
+p{margin:8px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;box-shadow:0 1px 3px rgba(14,42,71,.06)}
+.hint{color:var(--grey);font-size:13px}
+.badge{display:inline-block;background:var(--gold);color:#fff;font-size:11px;padding:2px 9px;border-radius:999px;font-weight:700;letter-spacing:.5px}
+.codes{color:var(--grey);font-size:13px}
+.banner{background:linear-gradient(135deg,var(--navy),#16395F);color:#fff;border-radius:14px;padding:18px 20px;margin-bottom:14px}
+.banner h1{color:#fff;margin:0 0 4px}
+.banner .k{color:#F2C879;font-size:11px;letter-spacing:2px;font-weight:700}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+.mcard{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;cursor:pointer;transition:transform .12s, box-shadow .12s}
+.mcard:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(14,42,71,.12)}
+.mcard .pt{color:var(--gold);font-weight:800;font-size:13px}
+.mcard .tt{font-weight:700;color:var(--navy);margin:2px 0 6px;font-size:16px}
+.pbar{height:8px;background:#e2e9f2;border-radius:99px;overflow:hidden;margin-top:10px}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--gold));border-radius:99px;transition:width .4s}
+.pnum{font-size:12px;color:var(--grey);margin-top:4px}
+button.btn{font-family:inherit;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-size:14px;background:var(--blue);color:#fff}
+button.btn:hover{filter:brightness(1.08)}
+button.btn.ghost{background:#eaf1f9;color:var(--navy)}
+button.btn.gold{background:var(--gold)}
+button.btn.small{padding:6px 12px;font-size:13px}
+.fill input{border:0;border-bottom:2px solid var(--blue);background:#f2f7fd;font:inherit;padding:2px 6px;min-width:130px;width:140px;border-radius:4px 4px 0 0;text-align:center}
+.fill input.ok{border-color:var(--ok);background:#e7f7ef}
+.fill input.no{border-color:var(--bad);background:#fdeceb}
+.mark{font-weight:700;margin-left:6px}
+.mark.ok{color:var(--ok)} .mark.no{color:var(--bad)}
+.revealbox{border-left:4px solid var(--blue);background:#f2f7fd;border-radius:0 10px 10px 0;padding:10px 14px;margin:10px 0}
+.revealbox .q{font-weight:600}
+.ans{display:none;margin-top:8px;padding:10px 12px;background:#fff;border:1px dashed var(--gold);border-radius:8px}
+.ans.show{display:block;animation:fade .25s}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1}}
+table.info{border-collapse:collapse;width:100%;margin:8px 0;font-size:14px}
+table.info th{background:#D9E2F3;color:var(--navy);text-align:left}
+table.info td,table.info th{border:1px solid var(--line);padding:6px 9px;vertical-align:top}
+td.cellr{cursor:pointer;color:#9AA8B8;text-align:center;user-select:none}
+td.cellr:hover{background:#f6f0df}
+td.cellr.shown{color:var(--ink);text-align:left;cursor:default;background:#fdFAF2}
+.imgwrap{text-align:center;margin:10px 0}
+.imgwrap img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:8px}
+.figcap{font-size:12.5px;color:var(--grey);text-align:center;margin-top:4px}
+textarea{width:100%;min-height:70px;border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;resize:vertical;background:#fbfdff}
+.qopt{display:block;width:100%;text-align:left;margin:6px 0;padding:9px 12px;border:1.5px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;font:inherit}
+.qopt:hover{border-color:var(--blue)}
+.qopt.ok{border-color:var(--ok);background:#e7f7ef}
+.qopt.no{border-color:var(--bad);background:#fdeceb}
+.qexp{display:none;margin-top:6px;font-size:13.5px;background:#f2f7fd;border-radius:8px;padding:8px 12px}
+.qexp.show{display:block}
+.matchwrap{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mitem{border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;background:#fff;cursor:pointer;text-align:center;font-size:14px;user-select:none}
+.mitem.sel{border-color:var(--blue);background:#eaf3fc}
+.mitem.done{border-color:var(--ok);background:#e7f7ef;cursor:default;opacity:.85}
+.mitem.err{border-color:var(--bad);background:#fdeceb}
+.tag{font-size:11px;font-weight:700;border-radius:99px;padding:2px 10px;display:inline-block}
+.tag.got{background:#e7f7ef;color:var(--ok)} .tag.rev{background:#fdf1e7;color:#b4611b}
+.tag.done{background:#e7f7ef;color:var(--ok)}
+.tag.open{background:#eef2f6;color:var(--grey)}
+.unitnav{display:flex;justify-content:space-between;margin-top:26px;gap:10px}
+.report table{width:100%;border-collapse:collapse;font-size:14px}
+.report th,.report td{border:1px solid var(--line);padding:7px 10px;text-align:left}
+.report th{background:#D9E2F3;color:var(--navy)}
+footer{max-width:980px;margin:0 auto;padding:20px 14px;color:var(--grey);font-size:12.5px;border-top:1px solid var(--line)}
+.secnav{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;margin:10px 0;font-size:13.5px}
+.secnav a{color:var(--blue);text-decoration:none;margin-right:12px;white-space:nowrap;display:inline-block}
+@media (max-width:640px){
+  h1{font-size:20px} h2{font-size:17px}
+  .fill input{width:110px;min-width:90px}
+  .matchwrap{grid-template-columns:1fr 1fr;gap:6px}
+  .mitem{padding:7px 6px;font-size:13px}
+  .topbar{padding:8px 10px;gap:8px}
+}
+</style>
+</head>
+<body>
+<header class="top"><div class="topbar">
+  <div class="brand">S3.2 COURSE<small>IB Chemistry · Unit 4</small></div>
+  <nav class="tabs" id="tabs"></nav>
+  <button id="annoToggle" title="Draw over the page (Apple Pencil / finger / mouse)">✏️ Annotate</button>
+</div></header>
+<div id="annoBar">
+  <span style="font-size:12px;color:#cfe0f2">Annotate mode</span>
+  <span class="pc on" data-c="#C0392B" style="background:#C0392B"></span>
+  <span class="pc" data-c="#1F6FB2" style="background:#1F6FB2"></span>
+  <span class="pc" data-c="#1e8e5a" style="background:#1e8e5a"></span>
+  <span class="pc" data-c="hl" style="background:linear-gradient(90deg,#ffe066,#ffd43b)"></span>
+  <button class="ab" id="annoEraser">Eraser</button>
+  <button class="ab" id="annoPause">Pause</button>
+  <button class="ab warn" id="annoClear">Clear page</button>
+  <button class="ab" id="annoExit">Exit</button>
+</div>
+<canvas id="annoCanvas"></canvas>
+<main id="app"></main>
+<footer>
+  Questions &amp; worked examples reproduced from <i>Chemistry for the IB Diploma Coursebook</i> (Cambridge University Press), Ch. 11, for classroom use.
+  Syllabus references: IB Chemistry Guide (first assessment 2025). Your progress is saved only in this browser.
+</footer>
+<script>
+"use strict";
+/* ---------------- state ---------------- */
+const KEY = "u4s32course";
+let S = JSON.parse(localStorage.getItem(KEY) || "{}");
+// migrate old TYU ratings (plain strings) to objects {rating, pad}
+if (S.tyu) for (const k of Object.keys(S.tyu)){
+  if (typeof S.tyu[k] === "string") S.tyu[k] = { rating: S.tyu[k] };
+}
+function save(){ localStorage.setItem(KEY, JSON.stringify(S)); }
+function resetAll(){ if(confirm("Erase all progress on this device?")){ S = {}; save(); route("home"); } }
+
+/* ---------------- helpers ---------------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+const norm = s => String(s).toLowerCase().replace(/[\s\-.()]/g,"");
+
+/* ---------------- sketch pads — Apple Pencil ready ---------------- */
+const DPR = Math.min(2, (typeof window!=="undefined" && window.devicePixelRatio) || 1);
+let penSeen = false; // once a real pencil touches, ignore finger input (palm rejection)
+
+function buildPad(mount, opts){
+  // opts: {get:()=>dataURL|null, set:(dataURL|null)=>void, small:bool}
+  mount.innerHTML = `
+   <div class="pad${opts.small ? " small" : ""}">
+     <div class="padtools">
+       <span class="pc on" data-c="#0E2A47" style="background:#0E2A47"></span>
+       <span class="pc" data-c="#C0392B" style="background:#C0392B"></span>
+       <span class="pc" data-c="#1F6FB2" style="background:#1F6FB2"></span>
+       <button class="pw on" data-w="2">thin</button>
+       <button class="pw" data-w="4">med</button>
+       <button class="pw" data-w="7">thick</button>
+       <button class="pe">eraser</button>
+       <button class="pcx">clear</button>
+       <span class="hint" style="margin-left:auto">Apple Pencil: pressure + palm rejection</span>
+     </div>
+     <canvas></canvas>
+   </div>`;
+  const canvas = mount.querySelector("canvas");
+  if (!canvas || typeof canvas.getContext !== "function") return; // no-DOM test guard
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const tools = mount.querySelector(".padtools");
+  let color = "#0E2A47", width = 3, eraser = false, saveTimer = null;
+  function redrawSaved(){
+    const d = opts.get && opts.get();
+    if (!d) return;
+    const im = new Image();
+    im.onload = ()=>ctx.drawImage(im, 0, 0, canvas.width, canvas.height);
+    im.src = d;
+  }
+  function size(){
+    const w = canvas.clientWidth || 600, h = canvas.clientHeight || (opts.small?220:300);
+    let keep = null;
+    if (canvas.width > 0 && canvas._hasStrokes){
+      keep = document.createElement("canvas");
+      keep.width = canvas.width; keep.height = canvas.height;
+      keep.getContext("2d").drawImage(canvas, 0, 0);
+    }
+    canvas.width = Math.round(w * DPR); canvas.height = Math.round(h * DPR);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+    canvas._hasStrokes = false;
+    if (keep){ ctx.drawImage(keep, 0, 0, canvas.width, canvas.height); canvas._hasStrokes = true; }
+    else redrawSaved();
+  }
+  canvas._padSize = size;
+  size();
+  function pt(e){
+    const r = canvas.getBoundingClientRect();
+    return { x: (e.clientX - r.left) * DPR, y: (e.clientY - r.top) * DPR, p: e.pressure || 0.5 };
+  }
+  function style(p){
+    ctx.globalCompositeOperation = "source-over";
+    ctx.strokeStyle = eraser ? "#ffffff" : color;
+    const k = (p.p > 0 && p.p < 1) ? 0.45 + 1.1 * p.p : 1; // pencil pressure
+    ctx.lineWidth = width * DPR * (eraser ? 2.4 : 1) * k;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+  }
+  function stroke(a, b){
+    style(a);
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    canvas._hasStrokes = true;
+  }
+  let drawing = false, last = null;
+  canvas.addEventListener("pointerdown", e=>{
+    if (penSeen && e.pointerType === "touch") return;
+    if (e.pointerType === "pen") penSeen = true;
+    drawing = true;
+    try{ canvas.setPointerCapture(e.pointerId); }catch(_){}
+    last = pt(e);
+    stroke(last, { x: last.x + 0.1, y: last.y, p: last.p });
+  });
+  canvas.addEventListener("pointermove", e=>{
+    if (!drawing) return;
+    const p = pt(e); stroke(last, p); last = p;
+  });
+  const stop = ()=>{ if (drawing){ drawing = false; scheduleSave(); } };
+  canvas.addEventListener("pointerup", stop);
+  canvas.addEventListener("pointercancel", stop);
+  function scheduleSave(){
+    if (saveTimer) clearTimeout(saveTimer);
+    saveTimer = setTimeout(()=>{
+      try{
+        const d = canvas.toDataURL("image/jpeg", 0.72);
+        if (opts.set) opts.set(d);
+        save();
+      }catch(err){ /* storage full — drawing stays in memory */ }
+    }, 700);
+  }
+  tools.addEventListener("click", e=>{
+    const t = e.target.closest("button, .pc");
+    if (!t) return;
+    if (t.classList.contains("pc")){
+      tools.querySelectorAll(".pc").forEach(x=>x.classList.remove("on"));
+      t.classList.add("on");
+      color = t.dataset.c; eraser = false;
+      const pe = tools.querySelector(".pe"); if (pe) pe.classList.remove("on");
+    } else if (t.classList.contains("pw")){
+      tools.querySelectorAll(".pw").forEach(x=>x.classList.remove("on"));
+      t.classList.add("on"); width = +t.dataset.w;
+    } else if (t.classList.contains("pe")){
+      eraser = !eraser; t.classList.toggle("on", eraser);
+    } else if (t.classList.contains("pcx")){
+      ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      canvas._hasStrokes = false;
+      if (opts.set) opts.set(null);
+      save();
+    }
+  });
+}
+function sizePads(root){
+  (root || document).querySelectorAll("canvas").forEach(c=>{ if (c._padSize) c._padSize(); });
+}
+if (typeof window !== "undefined" && window.addEventListener)
+  window.addEventListener("resize", ()=>sizePads(document));
+
+/* ---------------- teacher annotate overlay (draw over the whole page) ---------------- */
+function makeAnno(){
+  const byId = id => (document.getElementById ? document.getElementById(id) : document.querySelector("#" + id));
+  let btn = null, bar = null, cv = null;
+  try{
+    btn = byId("annoToggle"); bar = byId("annoBar"); cv = byId("annoCanvas");
+  }catch(e){}
+  if (!btn || !bar || !cv || typeof cv.getContext !== "function")
+    return { toggle(){}, saveCur(){}, restore(){} };
+  const ctx = cv.getContext("2d");
+  if (!ctx) return { toggle(){}, saveCur(){}, restore(){} };
+  let on = false, paused = false, color = "#C0392B", hl = false, width = 3, eraser = false;
+  let drawing = false, last = null, dirty = false;
+  function size(){
+    let keep = null;
+    if (cv.width > 0 && cv._hasStrokes){
+      keep = document.createElement("canvas");
+      keep.width = cv.width; keep.height = cv.height;
+      keep.getContext("2d").drawImage(cv, 0, 0);
+    }
+    cv.width = window.innerWidth; cv.height = window.innerHeight;
+    cv._hasStrokes = false;
+    if (keep){ ctx.drawImage(keep, 0, 0); cv._hasStrokes = true; }
+  }
+  function pt(e){ return { x: e.clientX, y: e.clientY, p: e.pressure || 0.5 }; }
+  function stroke(a, b){
+    ctx.globalCompositeOperation = eraser ? "destination-out" : "source-over";
+    ctx.globalAlpha = (hl && !eraser) ? 0.4 : 1;
+    ctx.strokeStyle = color;
+    const k = (a.p > 0 && a.p < 1) ? 0.45 + 1.1 * a.p : 1;
+    ctx.lineWidth = width * (hl ? 4 : 1) * (eraser ? 2.5 : 1) * k;
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    ctx.globalAlpha = 1;
+    cv._hasStrokes = true; dirty = true;
+  }
+  cv.addEventListener("pointerdown", e=>{
+    if (paused || !on) return;
+    if (penSeen && e.pointerType === "touch") return;
+    if (e.pointerType === "pen") penSeen = true;
+    drawing = true;
+    try{ cv.setPointerCapture(e.pointerId); }catch(_){}
+    last = pt(e);
+    stroke(last, { x: last.x + 0.1, y: last.y, p: last.p });
+  });
+  cv.addEventListener("pointermove", e=>{
+    if (!drawing || paused) return;
+    const p = pt(e); stroke(last, p); last = p;
+  });
+  const up = ()=>{ if (drawing){ drawing = false; saveCur(); } };
+  cv.addEventListener("pointerup", up);
+  cv.addEventListener("pointercancel", up);
+  function saveCur(){
+    if (!cv._hasStrokes || !dirty) return;
+    try{ S.anno = S.anno || {}; S.anno[routeNow] = cv.toDataURL("image/png"); save(); }
+    catch(e){ /* quota — stays in memory */ }
+    dirty = false;
+  }
+  function clearAll(){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    cv._hasStrokes = false;
+    if (S.anno){ delete S.anno[routeNow]; save(); }
+  }
+  function restore(v){
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    cv._hasStrokes = false;
+    if (!on) return;
+    const d = S.anno && S.anno[v];
+    if (!d) return;
+    const im = new Image();
+    im.onload = ()=>{ ctx.drawImage(im, 0, 0); cv._hasStrokes = true; };
+    im.src = d;
+  }
+  function setPause(p){
+    paused = p;
+    cv.style.pointerEvents = p ? "none" : "auto";
+    const b = bar.querySelector("#annoPause");
+    if (b) b.textContent = p ? "Resume" : "Pause";
+  }
+  function toggle(){
+    on = !on;
+    btn.classList.toggle("on", on);
+    bar.classList.toggle("on", on);
+    cv.classList.toggle("on", on);
+    if (on){ size(); restore(routeNow); setPause(false); }
+    else { saveCur(); }
+  }
+  btn.onclick = toggle;
+  bar.addEventListener("click", e=>{
+    const t = e.target;
+    if (!t || !t.classList) return;
+    if (t.classList.contains("pc")){
+      bar.querySelectorAll(".pc").forEach(x=>x.classList.remove("on"));
+      t.classList.add("on");
+      const c = t.dataset.c;
+      hl = (c === "hl");
+      color = hl ? "#f5c518" : c;
+      eraser = false;
+      const er = bar.querySelector("#annoEraser"); if (er) er.classList.remove("on");
+    } else if (t.id === "annoEraser"){
+      eraser = !eraser; t.classList.toggle("on", eraser);
+    } else if (t.id === "annoPause"){
+      setPause(!paused);
+    } else if (t.id === "annoClear"){
+      clearAll();
+    } else if (t.id === "annoExit"){
+      if (on) toggle();
+    }
+  });
+  if (window.addEventListener)
+    window.addEventListener("resize", ()=>{ if (on || cv._hasStrokes) size(); });
+  return { toggle, saveCur, restore };
+}
+const Anno = makeAnno();
+
+/* ================= DATA ================= */
+const MODULES = [
+/* ============ 4.1 ============ */
+{ part:"4.1", title:"Key Concepts & Hydrocarbons", level:"SL", codes:"S3.2.1 – S3.2.6",
+  read:"Coursebook §11.1–11.4 · pp.254–282",
+  intro:"Every organic structure you will meet this year is built from the ideas here: formula types, functional groups, homologous series and IUPAC naming. Master the seven naming steps — they pay off in every later unit.",
+  sections:[
+  { t:"A · Five ways to draw one molecule", blocks:[
+    { type:"fill", text:"A formula that shows the simplest whole-number ratio of atoms is the [[empirical]] formula. The formula that shows how atoms are joined together, but without drawing every bond, is the [[condensed structural|condensed]] formula; the one showing every atom and every bond is the [[full structural|full|displayed|displayed structural]] formula." },
+    { type:"fill", text:"In a skeletal formula, every vertex (corner) stands for a [[carbon|C]] atom; hydrogens attached to carbon are [[not shown|omitted|not shown explicitly|implied]]; and every carbon forms [[four|4]] bonds." },
+    { type:"reveal", q:"Butane and 2-methylpropane both have the molecular formula C₄H₁₀. Which is the minimum formula type needed to tell them apart — and why?",
+      a:"A structural formula (condensed or fuller). The molecular formula only counts atoms; the two compounds differ in <b>connectivity</b> (straight chain vs branched), which structural formulas show." },
+    { type:"reveal", q:"NOS · Models: what does a space-filling model show that a skeletal formula cannot — and vice versa?",
+      a:"Space-filling shows relative atomic sizes and how crowded the molecule is; skeletal shows connectivity and shape cleanly. Every depiction of a molecule is a model with advantages and limitations." },
+    { type:"reveal", q:"What exactly is a phenyl group, and what do the words aromatic / aliphatic mean?",
+      a:"A benzene ring that has lost one H to bond to the rest of the molecule (C₆H₅−). Compounds containing a phenyl group are <b>aromatic</b>; organic compounds without one are <b>aliphatic</b>." },
+    { type:"table", t:"Formula types — complete the table, then tap cells to check", head:["Formula type","What it shows","Butane example"],
+      rows:[["empirical","simplest whole-number ratio","C₂H₅"],
+            ["molecular","number of each atom","C₄H₁₀"],
+            ["condensed structural","grouping / connectivity","CH₃CH₂CH₂CH₃"],
+            ["full (displayed) structural","all atoms and all bonds","(drawn out in full)"],
+            ["skeletal","carbon skeleton only","⌁ 4 vertices"],
+            ["stereochemical","3D arrangement (wedge–dash)","tetrahedral drawing"]] }
+  ]},
+  { t:"B · Functional groups & homologous series", blocks:[
+    { type:"fill", text:"A homologous series is a family of compounds with the same [[functional group]], whose successive members differ by a common structural unit, usually [[CH2|-CH2-|CH₂]]." },
+    { type:"fill", text:"A hydrocarbon contains only [[carbon]] and [[hydrogen]]. A functional group gives a molecule its characteristic [[chemical]] properties and also influences its [[physical]] properties." },
+    { type:"fill", text:"Saturated compounds have only [[single]] bonds between carbon atoms. Unsaturated compounds contain at least one [[double|C=C]] or triple bond between carbons." },
+    { type:"reveal", q:"List the three defining features of a homologous series.",
+      a:"① a general molecular formula (e.g. CₙH₂ₙ₊₂ for alkanes); ② the same functional group → similar chemical properties; ③ a gradation in physical properties as the chain lengthens." },
+    { type:"reveal", q:"Why does boiling point rise as the chain lengthens, and why do branched isomers boil lower?",
+      a:"Longer chain → more electrons and more surface contact → stronger <b>London forces</b>. Branching prevents chains packing closely → fewer contact points → weaker London forces → lower bp." },
+    { type:"reveal", q:"Ethanol (M<sub>r</sub> 46), ethanal (M<sub>r</sub> 44) and propane (M<sub>r</sub> 44) — rank by boiling point and justify.",
+      a:"ethanol (78 °C) &gt; ethanal (21 °C) &gt; propane (−42 °C). Ethanol: London + dipole–dipole + <b>hydrogen bonding</b>; ethanal: London + dipole–dipole (polar C=O); propane: London only (non-polar). Relative molecular mass alone compares within a series, not between series." },
+    { type:"reveal", q:"How does water solubility change along a series, and why?",
+      a:"It falls as the non-polar hydrocarbon chain grows — the −OH can still hydrogen-bond with water, but it becomes a smaller and smaller fraction of the molecule (pentan-1-ol / hexan-1-ol are only sparingly soluble)." },
+    { type:"match", t:"Match each series to its general formula",
+      pairs:[["alkane","CₙH₂ₙ₊₂"],["alkene","CₙH₂ₙ"],["alkyne","CₙH₂ₙ₋₂"],["alcohol","CₙH₂ₙ₊₁OH"],["carboxylic acid","CₙH₂ₙO₂"]] }
+  ]},
+  { t:"C · IUPAC naming — the seven steps", blocks:[
+    { type:"fill", text:"Step 1: find the [[longest continuous|longest]] carbon chain — it may not be drawn as a horizontal line. Step 4: number the chain to give the lowest [[individual]] numbers, not the lowest [[sum|total]]." },
+    { type:"fill", text:"Tie-break: if both directions give the same numbers, the substituent that comes first [[alphabetically]] gets the lower number — ignoring the prefixes di- and tri- when alphabetising. Commas separate [[numbers|digits]]; dashes separate a number from [[letters|a letter|words]]." },
+    { type:"match", t:"Match the carbon count to its stem",
+      pairs:[["1 carbon","meth-"],["2 carbons","eth-"],["3 carbons","prop-"],["4 carbons","but-"],["5 carbons","pent-"],["6 carbons","hex-"]] },
+    { type:"reveal", q:"Substituent names — what are they? (methyl, ethyl, propyl · halo prefixes)",
+      a:"−CH₃ methyl · −C₂H₅ ethyl · −C₃H₇ propyl · −F fluoro · −Cl chloro · −Br bromo · −I iodo. Multipliers: di-, tri-, tetra- (ignored when alphabetising)." },
+    { type:"reveal", q:"Naming alkenes and alkynes — where does the number go, and who wins between C=C and a substituent?",
+      a:"Pattern alk-<i>x</i>-ene / alk-<i>x</i>-yne; <i>x</i> is the lower-numbered carbon of the multiple bond. A functional group written at the END of a name (−ene) always has priority for numbering over a substituent at the beginning (methyl, chloro…): e.g. 4-methylpent-2-ene, not 2-methylpent-3-ene." }
+  ]},
+  { t:"D · Structural isomers", blocks:[
+    { type:"fill", text:"Structural isomers have the same [[molecular]] formula but different [[structural]] formulas — the atoms are joined together differently (different [[connectivity|connectivities]])." },
+    { type:"reveal", q:"Chain, position and functional-group isomers — define each with an example.",
+      a:"<b>Chain:</b> different carbon skeleton (pentane / 2-methylbutane / 2,2-dimethylpropane). <b>Position:</b> same skeleton, functional group moves (hex-2-ene / hex-3-ene; propan-1-ol / propan-2-ol). <b>Functional-group:</b> different functional groups (alcohol ↔ ether; carboxylic acid ↔ ester; alkene ↔ cycloalkane)." },
+    { type:"reveal", q:"Two drawings of pentane look different — one bent, one straight. Are they isomers?",
+      a:"No. Free rotation about single (sigma) bonds means the same connectivity can be drawn in many conformations. If the atoms are joined the same way, it is one compound — not isomers." }
+  ]},
+  { t:"E · Cambridge worked examples (§11.1–11.3)", weOnly:true, blocks:[
+    { type:"we", n:"11.1", p:255 }, { type:"we", n:"11.2", p:256 }, { type:"we", n:"11.3", p:256 },
+    { type:"we", n:"11.4", p:257 }, { type:"we", n:"11.5", p:258 }, { type:"we", n:"11.6", p:267 },
+    { type:"we", n:"11.7", p:268 }, { type:"we", n:"11.8", p:268 }, { type:"we", n:"11.9", p:268 },
+    { type:"we", n:"11.10", p:268 }, { type:"we", n:"11.11", p:269 }
+  ]},
+  { t:"F · Cambridge practice — Test your understanding", blocks:[
+    { type:"tyu", img:"T1_4", label:"TYU 1–4 · Formulas" },
+    { type:"tyu", img:"T8_13", label:"TYU 8–13 · Naming alkanes & halogenoalkanes" },
+    { type:"tyu", img:"T14_15", label:"TYU 14–15 · Naming alkenes" },
+    { type:"tyu", img:"T21", label:"TYU 21 · Isomers of C₄H₈ (alkenes)" },
+    { type:"tyu", img:"T22", label:"TYU 22 · Isomers of C₅H₁₀" }
+  ]},
+  { t:"G · Checkpoint quiz", blocks:[
+    { type:"quiz", questions:[
+      { q:"Which formula shows ALL atoms and ALL bonds?", o:["molecular","empirical","full (displayed) structural","skeletal"], a:2,
+        e:"The full/displayed structural formula shows every atom and every bond — the exam definition." },
+      { q:"The general formula of the alkynes is:", o:["CₙH₂ₙ₊₂","CₙH₂ₙ","CₙH₂ₙ₋₂","CₙH₂ₙ₊₁OH"], a:2,
+        e:"Each triple bond removes 4 H relative to the alkane: CₙH₂ₙ₊₂ → CₙH₂ₙ₋₂." },
+      { q:"How many structural isomers does C₅H₁₂ have?", o:["2","3","4","5"], a:1,
+        e:"pentane, 2-methylbutane, 2,2-dimethylpropane — chain isomers only." },
+      { q:"A six-carbon chain carries one methyl group that is numbered 2 from one end and 5 from the other. The correct name is:", o:["5-methylhexane","2-methylhexane","2-ethylpentane","3-methylhexane"], a:1,
+        e:"Lowest individual number wins → 2-methylhexane. '2-ethylpentane' fails step 1: the longest chain is 6, not 5." },
+      { q:"Which pair are functional-group isomers?", o:["hexane and 2-methylpentane","pent-1-ene and cyclopentane","propan-1-ol and propan-2-ol","butane and 2-methylpropane"], a:1,
+        e:"Both are C₅H₁₀ but alkene vs cycloalkane — different functional groups. The others are chain (A, D) or position (C) isomers." },
+      { q:"Boiling point rises down a homologous series because…", o:["covalent bonds get stronger","London forces strengthen as molecules gain electrons","molecules become heavier and slower","hydrogen bonds form between chains"], a:1,
+        e:"More electrons + more surface contact → stronger London (instantaneous dipole–induced dipole) forces. Covalent bonds inside the molecule are NOT broken on boiling." },
+      { q:"Which naming statement is correct?", o:["Use the lowest SUM of locant numbers","Alphabetise substituents including di- and tri-","Commas between numbers; dashes between a number and letters","Substituents may be numbered from different directions"], a:2,
+        e:"Lowest individual numbers (not sum); ignore di/tri when alphabetising; all substituents numbered from the same direction." },
+      { q:"In a skeletal formula, a vertex represents:", o:["a bond","a CH₂ group only","a carbon atom with its appropriate hydrogens","any non-carbon atom"], a:2,
+        e:"Each vertex = a C with enough H to make four bonds; H atoms on carbon are simply not drawn." },
+      { q:"Which formula is sufficient to distinguish butane from 2-methylpropane?", o:["empirical","molecular","condensed structural","none — they are identical"], a:2,
+        e:"Empirical and molecular formulas are the same (C₂H₅ / C₄H₁₀); only a structural formula reveals the different connectivity." }
+    ]}
+  ]}
+]},
+/* ============ 4.2 ============ */
+{ part:"4.2", title:"Organic Compounds Containing Oxygen", level:"SL", codes:"S3.2.2, 3.2.4 – S3.2.6",
+  read:"Coursebook §11.2–11.4 · pp.261–281",
+  intro:"Six families, one atom: how a single oxygen (as −OH, C=O, −O−, −COOH, −COO−) changes naming, hydrogen bonding and boiling points. Keep asking: which IMF does this family use?",
+  sections:[
+  { t:"A · Alcohols", blocks:[
+    { type:"fill", text:"Alcohols contain the [[hydroxyl|OH|hydroxy]] group (−OH); they are named [[alkan-x-ol|alkanol|alkan-x-ol (x-alkanol)]] with the chain numbered to give the −OH the [[lowest]] possible number." },
+    { type:"fill", text:"The 'e' of the stem is dropped before −ol (a vowel), but kept for a diol: the name of CH₂OH–CH(OH)–CH₂–CH₂? — for example 1,2-diol names retain the 'e' because [[diol|'diol'|di- starts with a consonant]] starts with a consonant." },
+    { type:"table", t:"Classifying alcohols — tap to reveal", head:["Class","C atoms on the C bearing −OH","H atoms on that C","Signature","Example"],
+      rows:[["primary","1","2 (at least)","−CH₂OH","ethanol · methanol(!)"],
+            ["secondary","2","1","−CHOH","propan-2-ol"],
+            ["tertiary","3","0","−C(OH) with no H","2-methylpropan-2-ol"]] },
+    { type:"reveal", q:"Methanol has no other carbon attached to the −OH carbon — why is it still primary?",
+      a:"Classification keys on the −CH₂X unit: methanol contains −CH₂OH (two H on the carbon), so it is primary. Same logic makes chloromethane a primary halogenoalkane." }
+  ]},
+  { t:"B · Ethers", blocks:[
+    { type:"fill", text:"Ethers contain the [[alkoxy]] group: R−[[O]]−R′. They are named [[alkoxyalkane]] — e.g. CH₃OCH₂CH₃ is [[methoxyethane]]." },
+    { type:"reveal", q:"Methoxyethane and propan-1-ol are both C₃H₈O. Which boils higher, and why?",
+      a:"Propan-1-ol (97 °C vs ≈ 8 °C). Propan-1-ol has an O–H and hydrogen-bonds with itself; the ether's O has no H attached, so its molecules manage only dipole–dipole + London forces. Same M<sub>r</sub>, very different IMF — functional-group isomers." },
+    { type:"reveal", q:"Solubility: propan-1-ol vs hexan-1-ol — what changes?",
+      a:"Both hydrogen-bond to water through −OH, but as the non-polar chain grows it dominates the molecule; pentan-1-ol and hexan-1-ol are only sparingly soluble." }
+  ]},
+  { t:"C · Aldehydes & ketones", blocks:[
+    { type:"fill", text:"Both families contain the [[carbonyl]] group (C=O) and are called carbonyl compounds. In aldehydes the C=O is at the [[end]] of the chain (the −[[CHO]] group, always carbon 1); in ketones it is [[within|inside|in the middle of]] the chain." },
+    { type:"fill", text:"Aldehydes are named [[alkanal|alkan-al]] ; ketones are named [[alkan-x-one|alkanone|alkan-x-one (x-alkanone)]] with the lowest number given to the [[C=O|carbonyl]]." },
+    { type:"reveal", q:"Simplest members?",
+      a:"Aldehyde: <b>methanal</b> HCHO (one carbon). Ketone: <b>propanone</b> CH₃COCH₃ — a ketone needs a carbon on each side of the C=O, so three carbons minimum." }
+  ]},
+  { t:"D · Carboxylic acids & esters", blocks:[
+    { type:"fill", text:"Carboxylic acids contain the [[carboxyl]] group (−COOH); they are named [[alkanoic acid]] with the COOH carbon always numbered [[1|one]]. With two COOH groups the ending becomes [[dioic acid|alkanedioic acid]] , keeping the 'e'." },
+    { type:"fill", text:"Esters have the structure R−[[COO]]−R′ and are named [[alkyl alkanoate|alkyl alkanoate (two words)]] — e.g. CH₃CH₂COOCH₃ is [[methyl propanoate]]." },
+    { type:"reveal", q:"How are esters formed (preview — mechanism comes in Reactivity 3)?",
+      a:"carboxylic acid + alcohol → ester + water, e.g. CH₃COOH + CH₃OH → CH₃COOCH₃ + H₂O. The name methyl ethanoate encodes both fragments: alcohol part (alkyl) first, acid part (alkanoate) second." },
+    { type:"reveal", q:"Functional-group isomer pairs — complete the pattern.",
+      a:"Alcohol C₂H₆O ↔ ether (C₂H₅OCH₃); carboxylic acid C₃H₆O₂ ↔ ester (HCOOCH₂CH₃ or CH₃COOCH₃). In every pair the two molecular formulas are identical — only the connectivity (and hence the functional group) differs." }
+  ]},
+  { t:"E · Numbering priority ladder", blocks:[
+    { type:"reveal", q:"When C=C and an O-group are both present, who gets the lowest number?",
+      a:"Priority ladder (highest → lowest): <b>COOH &gt; OH &gt; C=O &gt; C=C &gt; halo/alkyl substituents</b>. Evidence: WE 11.19 (COOH fixed at C1), WE 11.17 (−ol beats the alkene), WE 11.18 (−one beats the alkene). Before a vowel the -e- of the stem is dropped: but-3-en-2-ol, hex-5-en-3-one, hex-3-enoic acid." }
+  ]},
+  { t:"F · Physical properties across the O-families", blocks:[
+    { type:"table", t:"IMF per family — tap to reveal", head:["Family","Polar?","H-bond donor?","Strongest IMF"],
+      rows:[["alcohol","yes","yes (O–H)","hydrogen bonding"],
+            ["ether","yes (weak)","no H on O","dipole–dipole"],
+            ["aldehyde / ketone","yes (C=O)","no","dipole–dipole"],
+            ["carboxylic acid","yes","yes — and acceptor twice over","hydrogen bonding (dimerises)"],
+            ["ester","yes","no","dipole–dipole"]] },
+    { type:"reveal", q:"Why do the boiling points of different families converge for very long chains?",
+      a:"As the chain grows, the hydrocarbon part (identical London forces for every family) is an ever-larger fraction of the molecule, while the functional group's influence fades — heptadecan-1-ol and octadecane differ by only ~8 °C." }
+  ]},
+  { t:"G · Cambridge worked examples (§11.3)", weOnly:true, blocks:[
+    { type:"we", n:"11.12", p:272 }, { type:"we", n:"11.13", p:273 }, { type:"we", n:"11.14", p:274 },
+    { type:"we", n:"11.15", p:274 }, { type:"we", n:"11.16", p:274 }, { type:"we", n:"11.17", p:276 },
+    { type:"we", n:"11.18", p:276 }, { type:"we", n:"11.19a", p:276, label:"11.19" }
+  ]},
+  { t:"H · Cambridge practice — Test your understanding", blocks:[
+    { type:"tyu", img:"T16", label:"TYU 16 · Name the alcohols" },
+    { type:"tyu", img:"T17_18", label:"TYU 17–18 · Aldehydes, ketones & carboxylic acids" },
+    { type:"tyu", img:"T19", label:"TYU 19 · Mono-unsaturated + O groups" },
+    { type:"tyu", img:"T23", label:"TYU 23 · Isomers of C₄H₁₀O" },
+    { type:"tyu", img:"T24", label:"TYU 24 · Esters isomeric with acids" },
+    { type:"tyu", img:"T26", label:"TYU 26 · C₅H₁₀O with a 5-atom ring" }
+  ]},
+  { t:"I · Checkpoint quiz", blocks:[
+    { type:"quiz", questions:[
+      { q:"The IUPAC name of CH₃CH(OH)CH₂CH₃ is:", o:["butan-1-ol","butan-2-ol","2-hydroxybutane","butan-3-ol"], a:1,
+        e:"−OH on C2 numbering from the nearest end; suffix −ol with the 'e' dropped." },
+      { q:"(CH₃)₃COH is a ___ alcohol.", o:["primary","secondary","tertiary","none — it is an ether"], a:2,
+        e:"The −OH carbon carries three methyl groups and no H → tertiary (2-methylpropan-2-ol)." },
+      { q:"Methoxyethane and propan-1-ol are:", o:["chain isomers","position isomers","functional-group isomers","not isomers"], a:2,
+        e:"Same formula C₃H₈O; ether vs alcohol — different functional groups." },
+      { q:"Which C₃H₈O isomer boils highest?", o:["methoxyethane","propan-1-ol","propan-2-ol","they boil identically"], a:1,
+        e:"Both propanols hydrogen-bond (beating the ether easily); the straight chain of propan-1-ol gives more contact area than propan-2-ol." },
+      { q:"A carbonyl carbon bonded to one H and one C is characteristic of a(n):", o:["ketone","aldehyde","ester","amide"], a:1,
+        e:"C=O at the end of a chain → CHO group → aldehyde (alkanal, carbonyl carbon = C1)." },
+      { q:"CH₃CH₂COOCH₃ is named:", o:["propyl ethanoate","methyl propanoate","ethyl methanoate","methyl ethanoate"], a:1,
+        e:"Alkyl on the single-bonded O (methyl) + acid part (propanoate) → methyl propanoate." },
+      { q:"When both −OH and C=C are present, numbering gives the lowest number to:", o:["the C=C","the −OH","the alkyl substituent","whichever is alphabetically first"], a:1,
+        e:"−ol (end-of-name group) outranks −ene, which outranks halo/alkyl prefixes: but-3-en-2-ol." },
+      { q:"The simplest ketone is:", o:["methanal","ethanal","propanal","propanone"], a:3,
+        e:"A ketone's C=O needs a carbon on both sides — three carbons minimum → propanone." }
+    ]}
+  ]}
+]},
+/* ============ 4.3 ============ */
+{ part:"4.3", title:"Compounds Containing Other Elements", level:"SL", codes:"S3.2.2, 3.2.5, S3.2.6",
+  read:"Coursebook Table 11.3 & §11.3–11.4 · pp.262–268, 277–279",
+  intro:"Halogens, nitrogen, and the amide link that holds proteins together. The big trap of this part: 'primary/secondary/tertiary' is counted from a different atom for amines than for alcohols.",
+  sections:[
+  { t:"A · Halogenoalkanes", blocks:[
+    { type:"fill", text:"Halogenoalkanes carry the [[halogeno|halo]] group −X, where X = [[F, Cl, Br or I|fluoro, chloro, bromo, iodo|F/Cl/Br/I]]. They are named [[x-haloalkane]] — the halo group is a prefix, never a suffix." },
+    { type:"reveal", q:"Classify 1-chlorobutane, 2-chloropropane and 2-chloro-2-methylpropane.",
+      a:"Same counting rule as alcohols (count carbons attached to the C bearing X): 1° (−CH₂X, at least two H), 2° (one H), 3° (no H). Chloromethane counts as primary — it contains −CH₂Cl. This 1°/2°/3° label returns when SN1/SN2 arrive in Reactivity 3.4." }
+  ]},
+  { t:"B · Amines", blocks:[
+    { type:"fill", text:"Amines contain the [[amino]] group. Primary amines contain −[[NH2|NH₂]] , secondary amines −NHR, tertiary amines −[[NR2|NR₂]] ." },
+    { type:"reveal", q:"THE trap: what is counted to decide primary / secondary / tertiary for amines?",
+      a:"The <b>nitrogen</b> — how many carbons (and hydrogens) are attached to N. This differs from alcohols and halogenoalkanes, where you count from the <b>carbon</b>. So (CH₃)₃N is a tertiary amine even though every carbon looks 'primary'. Naming options: alkylamine (propylamine) or alkan-x-amine (propan-1-amine)." },
+    { type:"reveal", q:"Which boils higher — propan-1-amine, N-methylethanamine or trimethylamine? Why?",
+      a:"Propan-1-amine &gt; N-methylethanamine &gt; trimethylamine. 1° and 2° amines have N–H to hydrogen-bond; the 3° amine has no N–H and manages only dipole–dipole + London." }
+  ]},
+  { t:"C · Amides", blocks:[
+    { type:"fill", text:"Amides contain the [[amido]] group (−[[CONH2|CONH₂|CO–NH₂]] ) and are named [[alkanamide]] — e.g. CH₃CH₂CONH₂ is [[propanamide]]." },
+    { type:"reveal", q:"Why do amides boil so high, and why does that matter in biology?",
+      a:"An amide is both a hydrogen-bond <b>donor</b> (N–H) and a double <b>acceptor</b> (C=O) — chains of strong H-bonds. This is exactly the peptide link (–CO–NH–) that stitches amino acids into proteins: Linking Question → AHL Structure 2.4, dipeptide formation." }
+  ]},
+  { t:"D · Nitriles (extension)", blocks:[
+    { type:"reveal", q:"What is −C≡N and why keep it on your radar?",
+      a:"The nitrile group. Not on the 2025 homologous-series list, but it appears in formula puzzles — and reduction of a nitrile adds hydrogens while keeping the carbon count (nitrile carbon counts: R–C≡N with n carbons ≡ acid with n+1? careful: R–CN has one MORE carbon than the parent chain name suggests — know it on sight)." }
+  ]},
+  { t:"E · Know-your-classes match", blocks:[
+    { type:"match", t:"Match each family to its functional group",
+      pairs:[["alcohol","−OH"],["ether","R−O−R′"],["aldehyde","−CHO"],["ketone","C−CO−C"],["carboxylic acid","−COOH"],["ester","−COO−"],["amine","−NH₂"],["amide","−CONH₂"],["halogenoalkane","−X"]] },
+    { type:"reveal", q:"Exam warning: 'name the functional group' — answer with which kind of name?",
+      a:"The functional-group NAME, not the class name: hydroxyl, carbonyl, carboxyl, alkoxy, amido, amino, halogeno, ester, phenyl. Saying 'alcohol' when asked for the functional group loses the mark." }
+  ]},
+  { t:"F · Cambridge practice — Test your understanding", blocks:[
+    { type:"tyu", img:"T20", label:"TYU 20 · Classify 1°/2°/3° and name" },
+    { type:"tyu", img:"T25", label:"TYU 25 · Isomers of C₄H₈Br₂" },
+    { type:"tyu", img:"T27", label:"TYU 27 · Identical or isomers?" },
+    { type:"tyu", img:"T28", label:"TYU 28 · Isomers, identical or neither?" },
+    { type:"tyu", img:"T5_7", label:"TYU 5–7 · Name the class / functional groups / draw structures" }
+  ]},
+  { t:"G · Checkpoint quiz", blocks:[
+    { type:"quiz", questions:[
+      { q:"2-chloropropane is a ___ halogenoalkane.", o:["primary","secondary","tertiary","quaternary"], a:1,
+        e:"The C bearing Cl has two carbons attached (one H) → secondary." },
+      { q:"Which is a tertiary amine?", o:["CH₃CH₂NH₂","(CH₃)₂NH","(CH₃)₃N","CH₃CH₂NHCH₃"], a:2,
+        e:"N attached to three carbons, no H. Count from the nitrogen, not from a carbon." },
+      { q:"The functional-group name for −CONH₂ is:", o:["amino","amido","nitrile","carboxyl"], a:1,
+        e:"amido. (amino = −NH₂; carboxyl = −COOH; class names are amide/amine/acid.)" },
+      { q:"'Primary amine' means the nitrogen is attached to:", o:["one amine group","one carbon (and two H)","one hydrogen only","one alkyl group and one aryl group"], a:1,
+        e:"1° amine: N bonded to 1 C + 2 H (−NH₂). 2°: 2 C + 1 H. 3°: 3 C + 0 H." },
+      { q:"Which molecule cannot DONATE a hydrogen bond?", o:["propan-1-amine","ethanamide","trimethylamine","ethanoic acid"], a:2,
+        e:"Trimethylamine is 3°: no N–H. It can only accept." },
+      { q:"−CN is the group of a:", o:["amine","amide","nitrile","nitro compound"], a:2,
+        e:"Nitrile (extension topic — recognise −C≡N on sight)." },
+      { q:"Which boils highest?", o:["propane","ethanamide","ethanamine (ethylamine)","methoxyethane"], a:1,
+        e:"The amide donates and accepts hydrogen bonds via N–H and C=O — stronger overall H-bonding than the amine's N–H alone." },
+      { q:"In a name like 2-bromobutane, 'bromo' is:", o:["a suffix","a class name","a prefix (substituent)","a multiplier"], a:2,
+        e:"Halo groups only ever appear as prefixes, never as suffixes." }
+    ]}
+  ]}
+]},
+/* ============ 4.4 ============ */
+{ part:"4.4", title:"Stereoisomerism", level:"HL", codes:"S3.2.7",
+  read:"Coursebook §11.4 · pp.282–292",
+  intro:"Same atoms, same bonds — different molecules. Restricted rotation (π bonds, rings) and chirality (four different groups) create stereoisomers; a polarimeter can tell mirror images apart when nothing else can.",
+  sections:[
+  { t:"A · From structural to stereoisomers", blocks:[
+    { type:"fill", text:"Stereoisomers have the same [[structural]] formula — the same connectivity and the same bond multiplicities — but the atoms are arranged differently [[in space|spatially|in 3D|three dimensionally]]." },
+    { type:"reveal", q:"cis-but-2-ene vs trans-but-2-ene vs but-1-ene — which pairs are which kind of isomer?",
+      a:"cis-/trans-but-2-ene: stereoisomers (same connectivity, different arrangement). cis-but-2-ene and but-1-ene: <b>structural</b> isomers (different names, different connectivity). Stereoisomers differ only by a descriptor (cis/trans, or R/S beyond IB)." }
+  ]},
+  { t:"B · cis–trans isomerism", blocks:[
+    { type:"fill", text:"cis–trans isomerism in alkenes requires two conditions: restricted rotation (the [[pi|π]] component of C=C) and [[two different|different]] groups on each carbon of the double bond." },
+    { type:"fill", text:"cis = the reference groups are on the [[same]] side of the double bond or ring; trans = [[opposite]] sides." },
+    { type:"reveal", q:"Does but-1-ene show cis–trans isomerism? And 2-methylpent-2-ene?",
+      a:"Neither. But-1-ene: two H on C1 → identical groups on one carbon. 2-methylpent-2-ene: two CH₃ on one carbon. Checklist: ① find the C=C (or ring); ② list groups on EACH carbon; ③ any duplicated pair → NO cis–trans." },
+    { type:"reveal", q:"cis-1,2-dichloroethene boils at 60.5 °C, trans at 48.7 °C — same M<sub>r</sub>. Why?",
+      a:"cis: the two C–Cl dipoles do not cancel → polar molecule → permanent dipole–dipole attractions. trans: dipoles cancel → non-polar → London only. cis-trans isomers are separable because their physical properties differ." },
+    { type:"reveal", q:"Cycloalkanes (C3/C4) — when do they show cis–trans?",
+      a:"A substituted cycloalkane shows cis–trans isomerism if at least two ring carbons each carry two different groups: the ring blocks groups flipping from above to below the plane. Cycloalkanes are functional-group isomers of the corresponding alkenes (CₙH₂ₙ)." }
+  ]},
+  { t:"C · Chirality & enantiomers", blocks:[
+    { type:"fill", text:"A chirality centre is a carbon atom bonded to [[four different]] groups. The two non-superimposable mirror images of a chiral molecule are called [[enantiomers]]." },
+    { type:"reveal", q:"Trap: 'four different groups' ≠ 'four different atoms'. Explain with an example.",
+      a:"Two of the attached atoms can both be carbon yet be different GROUPS: in CH₃–CH(OH)–CH₂OH the chiral carbon carries H, OH, CH₃ and CH₂OH — the two carbon groups differ." },
+    { type:"reveal", q:"How do you draw a pair of enantiomers (wedge–dash method)?",
+      a:"① Draw the chirality centre with two ordinary bonds in the plane. ② Add a solid wedge = bond coming out of the paper. ③ Add a dashed wedge = bond going behind. ④ Attach the four groups. ⑤ Draw the mirror image, moving each group straight across the mirror line — group positions do NOT swap. Don't write CH₂OH backwards: the group itself is not chiral." },
+    { type:"reveal", q:"Can a molecule contain asymmetric carbons yet be achiral?",
+      a:"Yes — if it has a <b>plane of symmetry</b>, the mirror images are superimposable. Example: cis-1,2-dichlorocyclopropane is achiral; the trans isomer is chiral." }
+  ]},
+  { t:"D · Optical activity", blocks:[
+    { type:"fill", text:"A racemic mixture (racemate) is an [[equimolar|equal-number-of-moles|equimolar (same number of moles)]] mixture of the two enantiomers; it is optically [[inactive]] because the two rotations cancel." },
+    { type:"reveal", q:"What does a polarimeter measure, and why does it distinguish enantiomers?",
+      a:"Plane-polarised light (one plane of vibration, made by a polarising filter) is rotated by chiral samples: the two enantiomers rotate it by equal angles in <b>opposite directions</b>. A polarimeter = light source + two polarising filters + sample tube + scale." },
+    { type:"reveal", q:"Why do laboratory syntheses usually give racemic products?",
+      a:"The two enantiomers (and their transition states) are equal in energy when the reagents/environment are achiral, so both form in equal amounts. Exam reflex: 'contains a chirality centre but is not optically active' → a racemic mixture is formed." },
+    { type:"reveal", q:"Compare the properties of a pair of enantiomers.",
+      a:"Identical physical properties (mp, bp, solubility) except rotation direction; identical chemical properties with non-chiral reagents; possibly very different behaviour in <b>chiral environments</b> — e.g. only one enantiomer may fit a chiral enzyme active site." }
+  ]},
+  { t:"E · Context reading — thalidomide", blocks:[
+    { type:"img", img:"T30ctx", cap:"Science in Context · Coursebook p.292" },
+    { type:"reveal", q:"Giving only the 'safe' enantiomer would not have prevented the thalidomide tragedy. Why?",
+      a:"The enantiomers interconvert in the body, regenerating the racemic mixture. Modern rules: each enantiomer and the racemate must be tested separately before a racemic drug is marketed. Thalidomide itself is still used (Thalomid) for leprosy and some cancers; lenalidomide (Revlimid) is a close relative." }
+  ]},
+  { t:"F · Cambridge worked example & practice", weOnly:true, blocks:[
+    { type:"we", n:"11.19b", p:288, label:"11.19" },
+    { type:"tyu", img:"T29", label:"TYU 29 · Which show cis–trans? Draw both forms" },
+    { type:"tyu", img:"T30", label:"TYU 30 · Chiral molecules & their enantiomers" },
+    { type:"tyu", img:"T31_33", label:"TYU 31–33 · Chirality, centres and relationships" }
+  ]},
+  { t:"G · Checkpoint quiz", blocks:[
+    { type:"quiz", questions:[
+      { q:"But-1-ene shows cis–trans isomerism.", o:["True","False"], a:1,
+        e:"C1 of the C=C carries two identical H atoms — the key requirement fails." },
+      { q:"cis-1,2-dichloroethene boils higher than the trans isomer because the cis form…", o:["has a larger M<sub>r</sub>","is polar (dipoles do not cancel), giving permanent dipole–dipole forces","has more electrons","hydrogen-bonds"], a:1,
+        e:"Same M<sub>r</sub>, same London forces; only the net polarity differs." },
+      { q:"Which molecule is chiral?", o:["1-bromobutane","2-bromobutane","1,2-dibromoethane","2,3-dimethylbutane"], a:1,
+        e:"C2 of 2-bromobutane carries H, Br, CH₃, C₂H₅ — four different groups." },
+      { q:"A racemic mixture…", o:["rotates plane-polarised light strongly","is an equimolar mixture of two enantiomers and is optically inactive","is a single pure enantiomer","contains structural isomers"], a:1,
+        e:"Equal and opposite rotations cancel → no net rotation." },
+      { q:"Enantiomers necessarily differ in…", o:["boiling point","solubility in water","direction of rotation of plane-polarised light","relative molecular mass"], a:2,
+        e:"Physical properties are identical apart from optical rotation; behaviour differs only in chiral environments." },
+      { q:"The instrument used to distinguish enantiomers is a(n):", o:["IR spectrometer","polarimeter","mass spectrometer","NMR spectrometer"], a:1,
+        e:"IR, MS and NMR are blind to chirality — the spectra of enantiomers are identical." },
+      { q:"A substituted cycloalkane shows cis–trans isomerism when…", o:["the ring has 3 or 4 carbons","at least two ring carbons each carry two different groups","it contains a chiral centre","it is aromatic"], a:1,
+        e:"The ring blocks rotation, so 'same side / opposite side' becomes fixed — with two different groups on each of at least two ring carbons." },
+      { q:"A product contains a chirality centre but shows no optical activity. The standard explanation:", o:["impurities","a racemic mixture was formed","the centre is not really chiral","plane-polarised light was blocked"], a:1,
+        e:"Achiral reagents → equal amounts of both enantiomers → rotations cancel." }
+    ]}
+  ]}
+]},
+/* ============ 4.5 ============ */
+{ part:"4.5", title:"Analytical Spectra — IR · MS · ¹H NMR", level:"HL", codes:"S3.2.8 – S3.2.12",
+  read:"Coursebook §11.5 · pp.293–323",
+  intro:"The detective toolkit: mass spectrometry gives the formula, IR gives the bonds, ¹H NMR gives the hydrogen environments. Real structure determination always combines them — and always uses ALL the data.",
+  sections:[
+  { t:"A · The structure-determination toolkit", blocks:[
+    { type:"table", t:"Which technique answers which question? — tap to reveal", head:["Technique","Question it answers","Key readout"],
+      rows:[["elemental analysis","what is the empirical formula?","% composition → mole ratio"],
+            ["mass spectrometry","what is the molecular mass / formula?","M⁺ peak (highest m/z), fragments"],
+            ["IR spectroscopy","which bonds / functional groups?","absorption wavenumbers > 1500 cm⁻¹"],
+            ["¹H NMR","how are the H atoms arranged?","signals, δ, integration, splitting"]] }
+  ]},
+  { t:"B · IR spectroscopy", blocks:[
+    { type:"fill", text:"IR spectra are read in wavenumbers (cm⁻¹), proportional to frequency and to energy. The region above 1500 cm⁻¹ is the [[functional group|functional-group|functional-group region]] region; below 1500 cm⁻¹ is the [[fingerprint]] region, unique to the molecule as a whole." },
+    { type:"table", t:"Bond → wavenumber (learn the big four; the rest from the data booklet)", hideCols:[2], head:["Bond","Class","Range / cm⁻¹"],
+      rows:[["C−Cl","chloroalkane","600–800"],
+            ["C−O","alcohol, ether, ester, acid","1000–1300"],
+            ["C=C","alkene","1610–1680"],
+            ["C=O","aldehyde, ketone, acid, ester","1700–1750"],
+            ["C≡C","alkyne","2100–2260"],
+            ["O−H (acid)","carboxylic acid, very broad","2500–3400"],
+            ["C−H","alkane/alkene/arene","2840–3100"],
+            ["O−H (alcohol)","alcohol, phenol, broad","3200–3600"],
+            ["N−H","primary amine","3300–3500"]] },
+    { type:"reveal", q:"How may the fingerprint region be used — and how may it NOT?",
+      a:"It may CONFIRM a hypothesised bond (e.g. checking for C–O at 1000–1300 once an ester is suspected) or match a whole molecule against a database. It may NOT be used to identify bonds from scratch: propanone's spectrum has bands at 1000–1300 cm⁻¹ yet contains no C–O bond." },
+    { type:"reveal", q:"Greenhouse link: what makes a molecule IR-active?",
+      a:"A vibration must <b>change the dipole moment</b>. CO₂'s symmetric stretch cancels (inactive); its bend and asymmetric stretch do not (active). Global-warming potential also depends on atmospheric concentration, lifetime and the wavelength range absorbed; methane's GWP is ~20–30× CO₂." }
+  ]},
+  { t:"C · Mass spectrometry", blocks:[
+    { type:"fill", text:"The peak at the highest m/z value is the [[molecular ion|M+|M⁺]] , giving the relative molecular mass. Only [[positive]] ions are detected — radicals give no peak." },
+    { type:"reveal", q:"What causes a small (M+1)⁺ peak?",
+      a:"¹³C, natural abundance ≈ 1.1% — some molecules contain one heavy carbon, one mass unit heavier." },
+    { type:"table", t:"Common fragment ions (data booklet) — tap to reveal", head:["m/z","Fragment ion","Usual inference"],
+      rows:[["15","CH₃⁺","methyl group"],
+            ["17","OH⁺","alcohol / carboxylic acid"],
+            ["29","C₂H₅⁺ / CHO⁺","ethyl group / aldehyde"],
+            ["31","CH₂OH⁺ / CH₃O⁺","primary alcohol / methyl ester / ether"],
+            ["43","CH₃CO⁺","ketone with C=O on C2"],
+            ["45","COOH⁺","carboxylic acid"],
+            ["77","C₆H₅⁺","arene / phenyl"]] },
+    { type:"reveal", q:"Isotope fingerprints: what do Cl and Br do to a mass spectrum?",
+      a:"Cl: ³⁵Cl/³⁷Cl ≈ 3:1 → M and M+2 peaks of ~3:1. Br: ⁷⁹Br/⁸¹Br ≈ 1:1 → M and M+2 of ~1:1. Spot the doubled molecular-ion peaks before doing any arithmetic." },
+    { type:"reveal", q:"Two ways to read a fragmentation peak?",
+      a:"① the ion that survived and was detected (must carry the + charge, e.g. C₂H₅⁺ at m/z 29); ② the group LOST from the molecular ion (mass lost = M<sub>r</sub> − m/z; the lost piece needs no charge, e.g. loss of 29 from M⁺ 74 in propanoic acid)." }
+  ]},
+  { t:"D · ¹H NMR", blocks:[
+    { type:"fill", text:"Each signal corresponds to one set of protons in the same chemical [[environment|environments]]. The area under each signal (the integration trace) is proportional to the number of [[hydrogens|protons|H atoms]] in that environment." },
+    { type:"fill", text:"A signal split into a quartet means the protons' neighbouring carbon carries [[three|3]] H atoms: multiplicity = n + 1, where n is the number of H on the [[adjacent|neighbouring|neighboring]] atom(s)." },
+    { type:"reveal", q:"Which H atoms are equivalent — and how does symmetry reduce the signal count?",
+      a:"H on the same carbon are equivalent; molecular symmetry can make whole groups equivalent (propanone: 6 H, ONE signal; methylbenzene: 2 signals only)." },
+    { type:"reveal", q:"Why is TMS the δ = 0 reference? (any two)",
+      a:"12 equivalent protons → strong signal from a tiny amount; shift lower than virtually all organic protons; no overlap with analyte signals; inert, non-toxic, volatile (easy to remove)." },
+    { type:"table", t:"Chemical shifts from the data booklet — tap to reveal", head:["Proton type","δ / ppm"],
+      rows:[["alkyl H (−CH₃/−CH₂−)","0.9–1.7 (alkyl)"],
+            ["H on C next to C=O (ester/COO)","2.0–2.5 (ester) · 2.1–2.7 (aldehyde/ketone)"],
+            ["H on C next to arene","2.3–3.0"],
+            ["H on C bearing halogen","3.2–4.4"],
+            ["H on C next to O of ester","3.7–4.8"],
+            ["H on C−O of alcohol","3.3–3.7 · O−H itself 0.5–5.0"],
+            ["arene H","6.7–8.2"],
+            ["aldehyde CHO","9.4–10.0"],
+            ["acid O−H","9.0–13.0"]] },
+    { type:"reveal", q:"How do you predict a chemical shift (the 'best match' rule)?",
+      a:"Look at the NEXT atom along as well as the group itself — a CH₂ next to the C=O of an ester (2.0–2.5) differs from one next to the single-bond O of an ester (3.7–4.8). Choose the best single match; exact values vary." }
+  ]},
+  { t:"E · Combining techniques", blocks:[
+    { type:"reveal", q:"The exam workflow for 'deduce the structure':",
+      a:"① elemental analysis → empirical formula; ② M⁺ → molecular formula (sanity-check H ≤ 2n+2); ③ IR → functional group; ④ NMR → number of environments + ratios + splitting; ⑤ fragments → substituents. Marks are awarded per piece of data used — quote every observation in your answer." }
+  ]},
+  { t:"F · Cambridge worked examples (§11.5)", weOnly:true, blocks:[
+    { type:"we", n:"11.20", p:296 }, { type:"we", n:"11.21", p:297 }, { type:"we", n:"11.22", p:303 },
+    { type:"we", n:"11.23", p:304 }, { type:"we", n:"11.24", p:308 }, { type:"we", n:"11.25", p:311 },
+    { type:"we", n:"11.26", p:314 }, { type:"we", n:"11.27", p:315 }, { type:"we", n:"11.28", p:317 },
+    { type:"we", n:"11.29", p:321 }, { type:"we", n:"11.30", p:322 }
+  ]},
+  { t:"G · Cambridge practice — Test your understanding", blocks:[
+    { type:"tyu", img:"T34_35", label:"TYU 34–35 · IR predictions" },
+    { type:"tyu", img:"T36", label:"TYU 36 · Greenhouse gases" },
+    { type:"tyu", img:"T37_38", label:"TYU 37–38 · Formulas & fragments from MS" },
+    { type:"tyu", img:"T39", label:"TYU 39 · Signals & integration ratios" },
+    { type:"tyu", img:"T40", label:"TYU 40 · Multiplicity of highlighted H" },
+    { type:"tyu", img:"T41", label:"TYU 41 · Predict splitting patterns" },
+    { type:"tyu", img:"T42_43", label:"TYU 42–43 · Singlets and structure determination" },
+    { type:"tyu", img:"T44", label:"TYU 44 · Deduce the alcohol" }
+  ]},
+  { t:"H · Checkpoint quiz", blocks:[
+    { type:"quiz", questions:[
+      { q:"An IR absorption at 1700–1750 cm⁻¹ most likely indicates:", o:["O−H","C=O","C−Cl","N−H"], a:1,
+        e:"The carbonyl stretch — aldehydes, ketones, carboxylic acids and esters all absorb here (IR cannot always tell them apart)." },
+      { q:"The fingerprint region…", o:["sits above 1500 cm⁻¹ and identifies functional groups","is below 1500 cm⁻¹, characteristic of the whole molecule, used only to confirm","belongs to greenhouse gases","shows only C=O absorptions"], a:1,
+        e:"Below 1500 cm⁻¹: many overlapping absorptions; match whole spectra to databases or confirm a specific bond once suspected." },
+      { q:"The molecular ion peak…", o:["is always the tallest peak","occurs at the highest m/z and gives the M<sub>r</sub>","is caused by ¹³C","is a fragment ion"], a:1,
+        e:"Highest m/z, not highest abundance; the (M+1) satellite is the ¹³C signal." },
+      { q:"A peak at m/z = 15 is usually:", o:["OH⁺","CH₃⁺","C₂H₅⁺","COOH⁺"], a:1,
+        e:"12 + 3×1 = 15 → methyl cation (data booklet)." },
+      { q:"A compound containing one chlorine atom shows M and M+2 peaks in ratio about:", o:["1:1","3:1","1:3","9:7"], a:1,
+        e:"³⁵Cl : ³⁷Cl ≈ 3:1. For bromine the ratio would be ~1:1." },
+      { q:"How many signals in the ¹H NMR spectrum of propanone (CH₃COCH₃)?", o:["1","2","3","6"], a:0,
+        e:"Symmetry makes both methyls equivalent → one environment, one signal (integration 6)." },
+      { q:"A quartet means the protons giving the signal have ___ H atoms on the adjacent atom(s).", o:["0","1","2","3"], a:3,
+        e:"n + 1 = 4 → n = 3 (a CH₃ next door), e.g. the CH₂ of an ethyl group." },
+      { q:"The integration trace tells you…", o:["the chemical shift","the ratio of protons in each environment","the splitting pattern","which bonds are IR-active"], a:1,
+        e:"Step heights are proportional to the number of H in each environment." },
+      { q:"Which single technique best distinguishes propanone from propanal?", o:["IR alone","¹H NMR (and MS for the CHO fragment)","melting point","polarimetry"], a:1,
+        e:"Both have C=O (IR similar); NMR sees different H environments, and MS shows the CHO⁺/M⁺ pattern. Polarimetry is for enantiomers — both are achiral." }
+    ]}
+  ]}
+]}
+];
+
+/* ================= RENDER ================= */
+const app = $("#app"), tabs = $("#tabs");
+const VIEWS = ["home","4.1","4.2","4.3","4.4","4.5","report"];
+let routeNow = "home";
+
+function route(v){
+  Anno.saveCur();
+  routeNow = v;
+  [...tabs.children].forEach(b => b.classList.toggle("on", b.dataset.v === v));
+  window.scrollTo(0,0);
+  if (v === "home") renderHome();
+  else if (v === "report") renderReport();
+  else renderModule(MODULES.findIndex(m => m.part === v));
+  Anno.restore(v);
+}
+
+function buildTabs(){
+  tabs.innerHTML = "";
+  [["home","Home"],...MODULES.map(m=>[m.part,m.part]),["report","Report"]].forEach(([v,lab])=>{
+    const b = document.createElement("button");
+    b.textContent = lab; b.dataset.v = v; b.onclick = ()=>route(v);
+    tabs.appendChild(b);
+  });
+}
+
+/* ---------- block progress keys ---------- */
+function bkey(mi, si, bi){ return `m${mi}s${si}b${bi}`; }
+
+/* ---------- progress computation ---------- */
+function blockStat(mi, si, bi, blk){
+  const k = bkey(mi,si,bi);
+  switch(blk.type){
+    case "fill": {
+      const arr = S.fills?.[k]; if(!arr) return {u:1,c:0};
+      return {u:1, c: arr.every(Boolean)?1:0};
+    }
+    case "reveal": return {u:1, c: S.reveals?.[k]?1:0};
+    case "table": {
+      const arr = S.cells?.[k]; if(!arr || !arr.length) return {u:1,c:0};
+      return {u:1, c: arr.every(Boolean)?1:0};
+    }
+    case "match": return {u:1, c: S.match?.[k]?.done?1:0};
+    case "we": return {u:1, c: S.we?.[blk.n]?.attempted?1:0};
+    case "tyu": return {u:1, c: (S.tyu?.[blk.img]?.rating)?1:0};
+    case "quiz": {
+      const arr = S.quiz?.[k] || [];
+      const u = blk.questions.length, c = arr.filter(x=>x!=null).length;
+      return {u,c};
+    }
+    default: return {u:0,c:0};
+  }
+}
+function moduleProgress(mi){
+  let u=0,c=0;
+  MODULES[mi].sections.forEach((s,si)=>s.blocks.forEach((b,bi)=>{
+    const st = blockStat(mi,si,bi,b); u+=st.u; c+=st.c;
+  }));
+  return {u,c,pct: u? Math.round(c/u*100):0};
+}
+function overall(){
+  let u=0,c=0;
+  MODULES.forEach((_,mi)=>{ const st=moduleProgress(mi); u+=st.u; c+=st.c; });
+  return {u,c,pct: u? Math.round(c/u*100):0};
+}
+
+/* ---------- home ---------- */
+function renderHome(){
+  const ov = overall();
+  app.innerHTML = `
+  <div class="banner">
+    <div class="k">IB CHEMISTRY · UNIT 4 · STRUCTURE 3.2</div>
+    <h1>Organic Chemistry — Structure</h1>
+    <div>An interactive self-study course in five parts · Cambridge Coursebook Ch. 11 as the backbone</div>
+    <div style="margin-top:10px" class="pbar" ><i style="width:${ov.pct}%"></i></div>
+    <div class="pnum" style="color:#cfe0f2">${ov.c}/${ov.u} activities · ${ov.pct}% complete</div>
+  </div>
+  <div class="card">
+    <b>How this course works</b>
+    <p class="hint">Think → commit → check. Fill the blanks before revealing; attempt every worked example before opening the textbook solution; rate yourself honestly on the practice sets. Answer boxes support typing <i>and</i> free-hand sketching with Apple Pencil (pressure + palm rejection). Teachers: hit <b>✏️ Annotate</b> (top right) to draw over any page while teaching. Progress and sketches are saved in this browser only. Syllabus coverage: S3.2.1–S3.2.12 (Guide 2025).</p>
+    <button class="btn ghost small" onclick="resetAll()">Reset progress</button>
+  </div>
+  <div class="grid">
+  ${MODULES.map((m,mi)=>{ const st=moduleProgress(mi); return `
+    <div class="mcard" onclick="route('${m.part}')">
+      <div class="pt">PART ${m.part} · ${m.level}</div>
+      <div class="tt">${m.title}</div>
+      <div class="hint">${m.codes}</div>
+      <div class="pbar"><i style="width:${st.pct}%"></i></div>
+      <div class="pnum">${st.c}/${st.u} · ${st.pct}%</div>
+    </div>`;}).join("")}
+  </div>`;
+}
+
+/* ---------- module ---------- */
+function renderModule(mi){
+  const m = MODULES[mi];
+  const secnav = m.sections.map((s,si)=>`<a href="#sec${si}">${s.t.replace(/·.*/,"")}</a>`).join("");
+  app.innerHTML = `
+  <div class="banner">
+    <div class="k">PART ${m.part} · ${m.level} · ${m.codes}</div>
+    <h1>${m.title}</h1>
+    <div>${m.read}</div>
+  </div>
+  <p>${m.intro}</p>
+  <div class="secnav"><b>Sections:</b> ${secnav}</div>
+  <div id="modbody"></div>
+  <div class="unitnav">
+    ${mi>0?`<button class="btn ghost" onclick="route('${MODULES[mi-1].part}')">← Part ${MODULES[mi-1].part}</button>`:"<span></span>"}
+    ${mi<MODULES.length-1?`<button class="btn" onclick="route('${MODULES[mi+1].part}')">Part ${MODULES[mi+1].part} →</button>`:`<button class="btn gold" onclick="route('report')">See my report →</button>`}
+  </div>`;
+  const body = $("#modbody");
+  m.sections.forEach((sec,si)=>{
+    const h = document.createElement("h2"); h.id = "sec"+si; h.textContent = sec.t; body.appendChild(h);
+    sec.blocks.forEach((blk,bi)=>{
+      body.appendChild(renderBlock(mi,si,bi,blk));
+    });
+  });
+  sizePads(body);
+}
+
+/* ---------- block renderers ---------- */
+function renderBlock(mi,si,bi,blk){
+  const card = document.createElement("div"); card.className = "card";
+  const k = bkey(mi,si,bi);
+  if (blk.type === "fill") renderFill(card, k, blk);
+  else if (blk.type === "reveal") renderReveal(card, k, blk);
+  else if (blk.type === "table") renderTable(card, k, blk);
+  else if (blk.type === "match") renderMatch(card, k, blk);
+  else if (blk.type === "we") renderWE(card, blk);
+  else if (blk.type === "tyu") renderTYU(card, k, blk);
+  else if (blk.type === "quiz") renderQuiz(card, k, blk);
+  else if (blk.type === "img") card.innerHTML = `<div class="imgwrap"><img loading="lazy" src="img/${blk.img}.jpg"><div class="figcap">${esc(blk.cap||"")}</div></div>`;
+  return card;
+}
+
+function renderFill(card, k, blk){
+  const parts = blk.text.split(/\[\[(.+?)\]\]/g);
+  const html = [];
+  const answers = [];
+  for (let i=0;i<parts.length;i++){
+    if (i%2===0) html.push(esc(parts[i]));
+    else { answers.push(parts[i].split("|").map(norm)); html.push(`<input data-i="${answers.length-1}" autocomplete="off" spellcheck="false">`); }
+  }
+  const saved = S.fills?.[k];
+  const savedText = S.fillText?.[k];
+  card.innerHTML = `<div class="fill">${html.join("")}</div>
+    <div style="margin-top:8px">
+      <button class="btn small">Check</button>
+      <button class="btn ghost small">Show answers</button>
+      <span class="hint" style="margin-left:8px">Type your answers, then check. Case and spacing are ignored.</span>
+    </div>`;
+  const inputs = [...card.querySelectorAll("input")];
+  const [chk, show] = card.querySelectorAll("button");
+  const toks = blk.text.match(/\[\[(.+?)\]\]/g).map(t=>t.slice(2,-2).split("|")[0]);
+  function paint(){
+    inputs.forEach((inp,i)=>{
+      inp.classList.remove("ok","no");
+      if (saved && saved[i]===true) inp.classList.add("ok");
+      else if (saved && saved[i]===false) inp.classList.add("no");
+    });
+  }
+  if (savedText) inputs.forEach((inp,i)=>{ if(savedText[i]) inp.value = savedText[i]; });
+  inputs.forEach(inp=>inp.addEventListener("input",()=>{
+    const arr = S.fills ||= {}; arr[k] ||= new Array(inputs.length).fill(null);
+    const tArr = S.fillText ||= {}; tArr[k] ||= new Array(inputs.length).fill("");
+    arr[k][+inp.dataset.i] = null;
+    tArr[k][+inp.dataset.i] = inp.value;
+    save(); inp.classList.remove("ok","no");
+  }));
+  chk.onclick = ()=>{
+    const arr = S.fills ||= {}; arr[k] ||= new Array(inputs.length).fill(null);
+    inputs.forEach((inp,i)=>{
+      const ok = answers[i].includes(norm(inp.value));
+      inp.classList.toggle("ok", ok); inp.classList.toggle("no", !ok);
+      arr[k][i] = ok;
+    });
+    save();
+  };
+  show.onclick = ()=>{
+    inputs.forEach((inp,i)=>{ inp.value = toks[i]; inp.classList.add("ok"); });
+    const arr = S.fills ||= {}; arr[k] = inputs.map(()=>true); save();
+  };
+  if (saved){ paint(); }
+}
+
+function renderReveal(card, k, blk){
+  card.innerHTML = `<div class="revealbox"><div class="q">${blk.q}</div>
+    <div class="ans">${blk.a}</div>
+    <button class="btn small" style="margin-top:8px">Think first, then reveal</button></div>`;
+  const btn = card.querySelector("button"), ans = card.querySelector(".ans");
+  if (S.reveals?.[k]){ ans.classList.add("show"); btn.textContent = "Hide again"; }
+  btn.onclick = ()=>{
+    const on = ans.classList.toggle("show");
+    btn.textContent = on ? "Hide again" : "Think first, then reveal";
+    if (on){ S.reveals ||= {}; S.reveals[k] = true; save(); }
+  };
+}
+
+function renderTable(card, k, blk){
+  const rIdx = blk.rows.map(r=>r.map((c,ci)=>({hidden: /^hide/.test(String(c))|| c===null })));
+  // rows already contain answers; hide nothing explicitly — hide column? Simpler: last column(s) hidden
+  // We hide every cell marked with object or the "answer" columns defined by hideCols
+  const hideCols = blk.hideCols || blk.rows[0].map((_,ci)=>ci).filter(ci=>ci>0);
+  let cellState = S.cells?.[k];
+  if(!cellState){ cellState = blk.rows.map(()=>false); }
+  const rowsHtml = blk.rows.map((r,ri)=>"<tr>"+r.map((c,ci)=>{
+    if (hideCols.includes(ci)){
+      const shown = cellState[ri];
+      return `<td class="cellr${shown?" shown":""}" data-r="${ri}" data-ci="${ci}">${shown? esc(String(c)) : "· · tap ·"}</td>`;
+    }
+    return `<td>${esc(String(c))}</td>`;
+  }).join("")+"</tr>").join("");
+  card.innerHTML = `<table class="info"><tr>${blk.head.map(h=>`<th>${esc(h)}</th>`).join("")}</tr>${rowsHtml}</table>
+    <button class="btn ghost small">Reveal all</button>`;
+  function revealCell(td){
+    const r = +td.dataset.r, ci = +td.dataset.ci;
+    td.textContent = blk.rows[r][ci];
+    td.classList.add("shown");
+    cellState[r] = true;
+    S.cells ||= {}; S.cells[k] = cellState; save();
+  }
+  card.querySelectorAll("td.cellr").forEach(td=>{ td.onclick = ()=>revealCell(td); });
+  card.querySelector("button").onclick = ()=>{
+    card.querySelectorAll("td.cellr").forEach(td=>revealCell(td));
+  };
+}
+
+function renderMatch(card, k, blk){
+  const right = blk.pairs.map(p=>p[1]);
+  // shuffle right column (stable per session)
+  let shuf = [...right].sort(()=>Math.random()-0.5);
+  card.innerHTML = `<b>${blk.t}</b>
+    <p class="hint">Tap an item on the left, then its partner on the right. (Also works by tapping right first.)</p>
+    <div class="matchwrap">
+      <div>${blk.pairs.map((p,i)=>`<div class="mitem" data-l="${i}">${esc(p[0])}</div>`).join("")}</div>
+      <div>${shuf.map(v=>`<div class="mitem" data-r="${esc(v)}">${esc(v)}</div>`).join("")}</div>
+    </div>
+    <div style="margin-top:8px"><span class="hint" id="mstat"></span> <button class="btn ghost small">Restart game</button></div>`;
+  let selL = null, selR = null, doneCount = 0;
+  const stat = card.querySelector("#mstat");
+  function refresh(){
+    doneCount = blk.pairs.filter((p,i)=>card.querySelector(`.mitem[data-l="${i}"]`)?.classList.contains("done")).length;
+    stat.textContent = `${doneCount}/${blk.pairs.length} matched`;
+    if (doneCount === blk.pairs.length){
+      stat.textContent = "All matched — well done.";
+      S.match ||= {}; S.match[k] = {done:true}; save();
+    }
+  }
+  function tryPair(){
+    if (selL && selR){
+      const li = +selL.dataset.l;
+      if (blk.pairs[li][1] === selR.dataset.r){
+        selL.classList.add("done"); selR.classList.add("done");
+        selL.onclick = null; selR.onclick = null;
+      } else {
+        const l = selL, r = selR;
+        l.classList.add("err"); r.classList.add("err");
+        setTimeout(()=>{ l.classList.remove("err","sel"); r.classList.remove("err","sel"); }, 500);
+      }
+      selL = null; selR = null;
+      setTimeout(()=>{ card.querySelectorAll(".mitem.sel").forEach(x=>x.classList.remove("sel")); }, 400);
+      refresh();
+    }
+  }
+  card.querySelectorAll(".mitem").forEach(item=>{
+    item.onclick = ()=>{
+      if (item.classList.contains("done")) return;
+      item.classList.remove("err");
+      if (item.dataset.l !== undefined){
+        card.querySelectorAll("[data-l]").forEach(x=>x.classList.remove("sel"));
+        selL = item; item.classList.add("sel");
+      } else {
+        card.querySelectorAll("[data-r]").forEach(x=>x.classList.remove("sel"));
+        selR = item; item.classList.add("sel");
+      }
+      tryPair();
+    };
+  });
+  card.querySelector("button").onclick = ()=>{ renderMatchInto(card, k, blk); };
+  refresh();
+}
+function renderMatchInto(card, k, blk){ // re-render in place
+  const fresh = document.createElement("div");
+  renderMatch(fresh, k, blk);
+  card.replaceWith(fresh);
+}
+
+function renderWE(card, blk){
+  const n = blk.label || blk.n;
+  const st = S.we?.[blk.n] || {};
+  const showDraw = st.pad && !st.text;
+  card.innerHTML = `
+    <h3>Worked Example ${n} <span class="hint">· Coursebook p.${blk.p}</span></h3>
+    <div class="imgwrap"><img loading="lazy" src="img/WE${blk.n.replace("11.","11_")}.jpg"></div>
+    <div class="wtabs">
+      <button class="wtab ${showDraw?"":"on"}" data-t="type">&#9000; Type</button>
+      <button class="wtab ${showDraw?"on":""}" data-t="draw">&#9999; Sketch (Apple Pencil)</button>
+    </div>
+    <div class="wtype" ${showDraw?'style="display:none"':""}>
+      <textarea placeholder="Your attempt — commit to an answer before looking at the textbook solution (autosaved)">${esc(st.text||"")}</textarea>
+    </div>
+    <div class="wdraw" ${showDraw?"":'style="display:none"'}></div>
+    <div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn small wemark ${st.attempted?"gold":""}">${st.attempted?"Attempted ✓":"Mark as attempted"}</button>
+      <button class="btn ghost small wesol">${st.revealed?"Hide textbook solution":"Show textbook solution"}</button>
+    </div>
+    <div class="imgwrap" style="display:none"><img loading="lazy" src="img/ANS${blk.n.replace("11.","11_")}.jpg"></div>`;
+  buildPad(card.querySelector(".wdraw"), {
+    get: ()=> (S.we && S.we[blk.n] && S.we[blk.n].pad) || null,
+    set: d => { S.we = S.we || {}; S.we[blk.n] = S.we[blk.n] || {};
+                if (d) S.we[blk.n].pad = d; else delete S.we[blk.n].pad; }
+  });
+  const typePane = card.querySelector(".wtype");
+  const drawPane = card.querySelector(".wdraw");
+  card.querySelectorAll(".wtab").forEach(tab=>{
+    tab.onclick = ()=>{
+      card.querySelectorAll(".wtab").forEach(x=>x.classList.remove("on"));
+      tab.classList.add("on");
+      const isDraw = tab.dataset.t === "draw";
+      typePane.style.display = isDraw ? "none" : "";
+      drawPane.style.display = isDraw ? "" : "none";
+      if (isDraw) sizePads(card);
+    };
+  });
+  const mark = card.querySelector(".wemark");
+  const sol = card.querySelector(".wesol");
+  const solImg = card.querySelectorAll(".imgwrap")[1];
+  const ta = card.querySelector("textarea");
+  if (st.revealed) solImg.style.display = "";
+  mark.onclick = ()=>{
+    S.we ||= {}; S.we[blk.n] ||= {};
+    S.we[blk.n].attempted = !S.we[blk.n].attempted;
+    mark.classList.toggle("gold", S.we[blk.n].attempted);
+    mark.textContent = S.we[blk.n].attempted ? "Attempted ✓" : "Mark as attempted";
+    save();
+  };
+  sol.onclick = ()=>{
+    const on = solImg.style.display !== "none";
+    solImg.style.display = on ? "none" : "";
+    sol.textContent = on ? "Show textbook solution" : "Hide textbook solution";
+    S.we ||= {}; S.we[blk.n] ||= {}; S.we[blk.n].revealed = !on; save();
+  };
+  if (ta) ta.addEventListener("input", ()=>{
+    S.we ||= {}; S.we[blk.n] ||= {};
+    S.we[blk.n].text = ta.value; save();
+  });
+}
+
+function renderTYU(card, k, blk){
+  const st = S.tyu?.[blk.img] || {};
+  const rating = st.rating || null;
+  const padOpen = !!st.pad;
+  card.innerHTML = `
+    <h3>${blk.label} <span class="hint">· Cambridge — Test your understanding</span></h3>
+    <div class="imgwrap"><img loading="lazy" src="img/${blk.img}.jpg"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <span class="tag ${rating==="got"?"got":rating==="review"?"rev":"open"}">${rating==="got"?"mastered":rating==="review"?"review later":"not rated"}</span>
+      <button class="btn small tyugot">I've got it</button>
+      <button class="btn ghost small tyurev">Review later</button>
+      <button class="btn ghost small tyusketch">${padOpen?"✏ Hide sketch pad":"✏ Sketch your answer"}</button>
+    </div>
+    <div class="tyupad" ${padOpen?"":'style="display:none"'}></div>`;
+  buildPad(card.querySelector(".tyupad"), {
+    small: true,
+    get: ()=> (S.tyu && S.tyu[blk.img] && S.tyu[blk.img].pad) || null,
+    set: d => { S.tyu = S.tyu || {}; S.tyu[blk.img] = S.tyu[blk.img] || {rating:null};
+                if (d) S.tyu[blk.img].pad = d; else delete S.tyu[blk.img].pad; }
+  });
+  card.querySelector(".tyusketch").onclick = ()=>{
+    const pane = card.querySelector(".tyupad");
+    const open = pane.style.display === "none";
+    pane.style.display = open ? "" : "none";
+    if (open) sizePads(card);
+    card.querySelector(".tyusketch").textContent = open ? "✏ Hide sketch pad" : "✏ Sketch your answer";
+  };
+  card.querySelector(".tyugot").onclick = ()=>{ rateTYU(card, blk.img, "got"); };
+  card.querySelector(".tyurev").onclick = ()=>{ rateTYU(card, blk.img, "review"); };
+}
+function rateTYU(card, img, val){
+  S.tyu = S.tyu || {}; S.tyu[img] = S.tyu[img] || {};
+  S.tyu[img].rating = val; save();
+  const tag = card.querySelector(".tag");
+  tag.className = "tag " + (val==="got"?"got":"rev");
+  tag.textContent = val==="got"?"mastered":"review later";
+}
+
+function renderQuiz(card, k, blk){
+  const qs = blk.questions;
+  const saved = S.quiz?.[k] || new Array(qs.length).fill(null);
+  card.innerHTML = `<b>Checkpoint quiz</b><p class="hint">Instant feedback. Answers are recorded — try to get every explanation.</p>
+    <div id="qz"></div>
+    <button class="btn ghost small" style="margin-top:8px">Reset this quiz</button>`;
+  const qz = card.querySelector("#qz");
+  function draw(){
+    qz.innerHTML = qs.map((q,qi)=>`
+      <div style="margin:14px 0">
+        <div><b>Q${qi+1}.</b> ${q.q}</div>
+        ${q.o.map((opt,oi)=>`<button class="qopt ${saved[qi]==null?"":(oi===q.a?"ok":oi===saved[qi]?"no":"")}" data-q="${qi}" data-o="${oi}">${"ABCD"[oi]||String.fromCharCode(65+oi)} · ${opt}</button>`).join("")}
+        <div class="qexp ${saved[qi]!=null?"show":""}">${q.e}</div>
+      </div>`).join("");
+    qz.querySelectorAll(".qopt").forEach(btn=>{
+      btn.onclick = ()=>{
+        const qi = +btn.dataset.q, oi = +btn.dataset.o;
+        saved[qi] = oi;
+        S.quiz ||= {}; S.quiz[k] = saved; save();
+        draw();
+      };
+    });
+    const score = saved.filter((x,qi)=>x===qs[qi].a).length;
+    const answered = saved.filter(x=>x!=null).length;
+    qz.insertAdjacentHTML("beforeend",
+      `<div style="margin-top:8px"><b>${score}/${qs.length}</b> <span class="hint">(${answered} answered)</span></div>`);
+  }
+  draw();
+  card.querySelector("button").onclick = ()=>{
+    saved.fill(null);
+    S.quiz ||= {}; S.quiz[k] = saved; save(); draw();
+  };
+}
+
+/* ---------- report ---------- */
+function renderReport(){
+  let rows = "", queue = [];
+  MODULES.forEach((m,mi)=>{
+    const st = moduleProgress(mi);
+    const quizK = `m${mi}s${m.sections.length-1}b0`;
+    const qBlk = m.sections[m.sections.length-1].blocks.find(b=>b.type==="quiz");
+    let qScore = "—";
+    if (qBlk){
+      const arr = S.quiz?.[quizK]||[];
+      const ans = arr.filter(x=>x!=null).length;
+      qScore = `${arr.filter((x,i)=>x===qBlk.questions[i].a).length}/${qBlk.questions.length} (answered ${ans})`;
+    }
+    rows += `<tr><td><b>${m.part}</b> ${m.title}</td><td>${st.c}/${st.u} (${st.pct}%)</td><td>${qScore}</td></tr>`;
+    m.sections.forEach((s,si)=>s.blocks.forEach((b,bi)=>{
+      const k = bkey(mi,si,bi);
+      if (b.type==="tyu" && S.tyu?.[b.img]?.rating==="review") queue.push([m.part, b.label]);
+      if (b.type==="quiz"){
+        const arr = S.quiz?.[k]||[];
+        arr.forEach((x,i)=>{ if(x!=null && x!==b.questions[i].a) queue.push([m.part, `Quiz Q${i+1} — wrong`]); });
+      }
+      if (b.type==="fill"){
+        const arr = S.fills?.[k];
+        if (arr && !arr.every(Boolean)) queue.push([m.part, "Fill-in — not all correct"]);
+      }
+    }));
+  });
+  app.innerHTML = `
+  <h1>My learning report</h1>
+  <p class="hint">Summary of everything recorded in this browser. The review queue collects every practice item you marked "review later", every wrong quiz answer, and unfinished fill-ins.</p>
+  <div class="card report">
+    <table><tr><th>Module</th><th>Activities</th><th>Checkpoint quiz</th></tr>${rows}</table>
+  </div>
+  <h2>Review queue (${queue.length})</h2>
+  ${queue.length? `<div class="card">${queue.map(([p,t])=>`<div>· <a href="#" onclick="route('${p}');return false;">Part ${p}</a> — ${t}</div>`).join("")}</div>` : `<p class="hint">Nothing queued — either you have not started, or you are on top of everything.</p>`}
+  <button class="btn ghost small" onclick="resetAll()">Reset all progress</button>`;
+}
+
+buildTabs();
+route("home");
+</script>
+</body>
+</html>

@@ -7,11 +7,11 @@ let state = { view: "home", chapter: null, name: "", answers: {}, marks: {}, pag
   browse: { level: "SL", paper: "MCQ" } };
 /* Level keys are internal and stable (access codes and saved attempts rely on them);
    LEVEL_LABELS is what students see. SLP / HLP = complete past papers shown as numbered sets. */
-const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP"];
-const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers" };
+const LEVELS = ["Pre-IB", "SL", "HL", "SLP", "HLP", "TL"];
+const LEVEL_LABELS = { "Pre-IB": "Pre-IB", "SL": "Topical SL", "HL": "Topical HL", "SLP": "SL Past Papers", "HLP": "HL Past Papers", "TL": "Topical Learning" };
 const PAPERS = ["MCQ", "FRQ", "P1B"];
 const PREIB_PAPERS = ["MCQ", "FRQ"];
-const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"] };
+const LEVEL_PAPERS = { "Pre-IB": ["MCQ", "FRQ"], "SL": ["MCQ", "P2", "P1B"], "HL": ["MCQ", "P2", "P1B"], "SLP": ["MCQ", "P2"], "HLP": ["MCQ", "P2"], "TL": ["MCQ"] };
 const isPastPaperLevel = l => /P$/.test(l);
 const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", "P2": "Paper 2" }[p] || p) : p;
 /* Bootstrap from URL: #preib/#topic/#sets/#p1b/#p2 preselect a level+paper tab;
@@ -25,6 +25,7 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
   if (h === "#sets")  { state.browse.level = "SLP"; state.browse.paper = "MCQ"; }
   if (h === "#p1b")   { state.browse.level = "SL"; state.browse.paper = "P1B"; }
   if (h === "#p2")    { state.browse.level = "SL"; state.browse.paper = "P2"; }
+  if (h === "#tl")    state.browse.level = "TL";
   // embeds never take a code (ENTRY itself is declared further down, so look at the URL here)
   const q = new URLSearchParams(location.search).has("entry") ? "" : new URLSearchParams(location.search).get("code");
   if (q) {
@@ -45,7 +46,7 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
    (used by the ibchemni personal-site embeds). Entries never include Pre-IB.
    No entry parameter = full app, behaviour unchanged. */
 const ENTRY_CFG = {
-  "topical-units":   { levels: ["SL", "HL"], papers: ["MCQ", "P2"], home: "/topical" },   // HL topical bank reorganised to units 2026-11-27
+  "topical-units":   { levels: ["SL", "HL", "TL"], papers: ["MCQ", "P2"], home: "/topical" },   // HL topical bank reorganised to units 2026-11-27; TL = interactive Topical Learning courses
   "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"], home: "/past-paper-sets" },
   "exam-sprint-p1b": { levels: ["SL", "HL"], papers: ["P1B"], home: "/exam-sprint" },
   "exam-sprint-p2":  { levels: ["SL", "HL"], papers: ["P2"], home: "/exam-sprint" }
@@ -784,6 +785,80 @@ function lockedClick() {
   if (el) el.focus();
 }
 
+/* ---------- Topical Learning: interactive self-study courses ---------- */
+/* Courses live in topical-learning/<slug>/ next to this app and open in a new tab. The teacher
+   unlocks them per student on the platform (Admin → practice unlocks, QuizGrant item
+   "course:<id>"); the rule travels to this app through /api/quiz/access like every other
+   hand-unlocked set, so nothing here is open by default. */
+const COURSES = [
+  { id: "tl-s32", rule: "course:tl-s32", path: "topical-learning/s32-organic-structure/index.html",
+    tag: "S3.2", title: "Organic Chemistry — Structure",
+    meta: "Self-study course · Cambridge Ch.11 backbone · 5 modules · 30 worked examples, practice sets, 42 checkpoint questions · Apple Pencil sketching" }
+];
+function courseAllowed(c) {
+  const a = getAccess();
+  if (ENTRY) return !!a && (a.allow || []).some(r => r === "*" || r === c.rule);
+  if (assignedIds.has(c.rule)) return true;
+  return !!a && (a.allow[0] === "*" || a.allow.indexOf(c.rule) > -1);
+}
+function openCourse(id) {
+  const c = COURSES.find(x => x.id === id);
+  if (!c || !courseAllowed(c)) { lockedClick(); return; }
+  const base = location.pathname.replace(/\/[^\/]*$/, "/");   // folder this index.html lives in
+  window.open(base + c.path, "_blank");
+}
+function renderTLHome() {
+  const me = session(), acc = getAccess();
+  const authBar = ENTRY
+    ? (platformSignedIn
+      ? `<div class="authbar"><button class="btn-auth light" onclick="platformGo('/my-practice')">My practice record</button></div>`
+      : `<div class="authbar"><button class="btn-auth light" onclick="platformGo('/login')">Sign in</button></div>`)
+    : me
+      ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
+      : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
+  const levelTabs = (ENTRY ? ENTRY.levels : LEVELS).map(l =>
+    `<button class="pill${l === "TL" ? " on" : ""}" onclick="setLevel('${l}')">${LEVEL_LABELS[l] || l}</button>`).join("");
+  const cards = COURSES.map(c => {
+    const allowed = courseAllowed(c);
+    return `<div class="chapter${allowed ? "" : " locked"}" onclick="${allowed ? `openCourse('${c.id}')` : "lockedClick()"}">
+      <div class="chapter-main">
+        <div class="chapter-no">${c.tag}</div>
+        <div>
+          <h3>${escHTML(c.title)}</h3>
+          <div class="meta">${escHTML(c.meta)}</div>
+        </div>
+      </div>
+      <div class="badge${allowed ? "" : " lock"}">${allowed ? "Open course" : "Locked"}</div>
+    </div>`;
+  }).join("");
+  const openHere = COURSES.filter(courseAllowed).length;
+  const accBar = ENTRY
+    ? `<div class="codebar"><div class="acc-status" id="accStatus">${!platformSignedIn
+        ? `<b>Sign in</b> to open the courses your teacher has unlocked for you.`
+        : openHere
+          ? `Open for you: <b>${openHere} of ${COURSES.length}</b> interactive course${COURSES.length === 1 ? "" : "s"}. Progress and sketches are saved in the course tab on this device.`
+          : `No course is open for your account yet. Ask IB chem Ni to unlock it.`}</div></div>`
+    : `<div class="codebar"><div class="acc-status">${me
+        ? `Signed in to <b>${escHTML(me.cls || "your class")}</b> — courses unlocked for your account open below`
+        : `Locked — <b>sign in</b> to open the courses unlocked for your account, or enter an access code`}</div></div>`;
+  app.innerHTML = `
+  <header class="site"><div class="inner">
+    ${authBar}
+    <div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div>
+    <h1>${ENTRY ? "Choose your chapter" : "Choose your level and paper"}</h1>
+    <p>${ENTRY
+      ? "Interactive self-study courses. Ask your teacher to unlock a course, then open it here — your progress is kept on this device."
+      : "Interactive self-study courses, unlocked by your teacher. Real IB questions, by topic or as complete papers, stay in the other tabs."}</p>
+  </div></header>
+  <main class="wrap">
+    <div class="lvlrow">${levelTabs}</div>
+    ${accBar}
+    <div class="listhead">Topical Learning · interactive courses</div>
+    ${cards}
+    <div class="footnote">Each course is a full self-study unit: fill-in concept builders, worked examples from the Cambridge Coursebook with instant feedback, practice sets, checkpoint quizzes and free-hand sketching with Apple Pencil.${ENTRY ? "" : `<br><a class="tlink" href="teacher.html">Teacher view</a>`}</div>
+  </main>`;
+}
+
 function srcLabel(src) {
   if (/^Q\d+$/.test(src || "")) return "";               // past-paper sets: the number is already printed
   const m = /_(SL|HL)_(\w+?)_(\d{4})_Q(\d+)$/.exec(src || "");
@@ -816,6 +891,7 @@ function renderHome() {
   <main class="wrap"><section class="card"><div class="meta">Opening your chapters…</div></section></main>`;
     return;
   }
+  if (state.browse.level === "TL") { renderTLHome(); return; }
   const { level, paper } = state.browse;
   const all = activeChapters();
   const group = all.map((ch, i) => ({ ch, i }))
