@@ -14,6 +14,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     ["Full Past Papers", "/past-paper-sets"],
     ["Exam Sprint", "/exam-sprint"],
     ["IA Programme", "/ia"],
+    ["Tools Handbook", "/tools-handbook"],
     ["Contact", "/contact"]
   ];
 

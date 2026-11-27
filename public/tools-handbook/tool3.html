@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tool 3 · Mathematics | IB chem Ni Tools Handbook</title>
+<meta name="description" content="IB Chemistry mathematics handbook: units, significant figures, uncertainties, error propagation and graphing.">
+<style>
+body{margin:0;background:#f7fbff;color:#17304f;font:16px/1.75 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+.topbar{max-width:880px;margin:0 auto;padding:22px 20px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:14px;font-weight:600;flex-wrap:wrap}
+.topbar .site{color:#17304f;text-decoration:none}
+.topbar .links a{color:#4b9cf5;text-decoration:none;margin-left:16px}
+.card{max-width:880px;margin:14px auto 40px;background:#fff;border:1px solid #dbe7f5;border-radius:18px;box-shadow:0 8px 30px rgba(23,48,79,.06);padding:clamp(20px,4vw,44px)}
+h1{font-size:1.65rem;line-height:1.3;margin:0 0 4px}
+h2{font-size:1.15rem;margin:1.9em 0 .4em;border-left:4px solid #4b9cf5;padding-left:10px;line-height:1.4}
+h3{font-size:1rem;margin:1.4em 0 .3em}
+p{margin:10px 0}
+img{max-width:100%;height:auto}
+table{border-collapse:collapse;margin:12px 0}
+td,th{padding:6px 8px;vertical-align:top}
+em{color:#64748b}
+a{color:#4b9cf5}
+@media print{.topbar{display:none}.card{border:none;box-shadow:none;border-radius:0;padding:0;max-width:none;margin:0}body{background:#fff;font-size:11.5pt}h2{break-after:avoid}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="site" href="/tools-handbook">IB chem Ni · Tools Handbook</a>
+  <span class="links"><a href="docx/L1_Tool3_Mathematics_Handout.docx">Download .docx</a><a href="#" onclick="window.print();return false">Print</a></span>
+</div>
+<div class="card">
+<h1>Tool 3 — Mathematics: Units, Uncertainties &amp; Graphs</h1>
+<p><em>L1 Tools Skills Handbook · Module 3 · IB Chemistry (Guide 2025, p.34–35 aligned) · SL core + AHL flags · Student version</em></p>
+
+<h2>1 · Why this module matters</h2>
+<p>Every data-based question you will meet — in <strong>Paper 1B</strong>, in your <strong>IA</strong>, and in the practical work of every unit — is a Tool 3 question in disguise: reading values with units, quoting them to the right precision, propagating uncertainties through a calculation, and drawing or interpreting a graph. Master this module once, and it pays back in all ten units of the course.</p>
+
+<h2>2 · Units, symbols and scientific notation</h2>
+<p>Use International System (SI) units and prefixes. Learn this table — it is assumed knowledge in every paper.</p>
+<table style="border-collapse:collapse;width:100%">
+<tr><th style="border:0.75pt solid #9AA8B8;padding:4pt">Prefix</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Symbol</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Multiple</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Example in chemistry</th></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">giga</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">G</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>9</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">kJ mol<sup>−1</sup> of ATP hydrolysis scaled up</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">mega</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">M</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>6</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">3.5 × 10<sup>6</sup> J (scientific notation)</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">kilo</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">k</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>3</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">kJ, kg, kPa</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">deci</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">d</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−1</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">dm<sup>3</sup> (the "litre" of chemistry)</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">centi</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">c</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−2</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">cm<sup>3</sup> (glassware scale)</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">milli</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">m</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−3</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">mg, mL, mmol</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">micro</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">µ</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−6</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">µg dm<sup>−3</sup> (trace pollutants)</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">nano</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">n</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−9</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">nm (wavelength, particle size)</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">pico</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">p</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">10<sup>−12</sup></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">pm (atomic radii)</td></tr>
+</table>
+<p><strong>Conversions that appear constantly:</strong> 1 dm<sup>3</sup> = 1000 cm<sup>3</sup>; 1 m<sup>3</sup> = 1000 dm<sup>3</sup>; T/K = θ/°C + 273; 1 kJ = 1000 J. Always carry units through the calculation line by line — in P1B, an answer with a missing or wrong unit loses the mark even if the number is right.</p>
+
+<h2>3 · Significant figures and decimal places</h2>
+<p>Rules for counting significant figures (s.f.): all non-zero digits count; leading zeros never count (0.0015 has 2 s.f.); trailing zeros after the decimal point count (34.10 has 4 s.f.); captive zeros count (1.005 has 4 s.f.).</p>
+<p>Rules for answers: in <strong>multiplication/division</strong>, quote the answer to the s.f. of the <em>least precise</em> value used; in <strong>addition/subtraction</strong>, quote to the fewest <em>decimal places</em>. When the question says "to an appropriate number of significant figures", this is exactly what it means — P1B says it constantly.</p>
+
+<h2>4 · Errors, accuracy and precision</h2>
+<p><strong>Systematic errors</strong> have identifiable causes in the design, shift every result the same way (consistently higher or lower), are <em>not</em> reduced by repetition, and can be removed by improving the method (e.g. heat loss in calorimetry). <strong>Random errors</strong> scatter results either side of the true value and are reduced by repetition and averaging.</p>
+<p><strong>Accuracy</strong> = closeness to the true value (small systematic error). <strong>Precision</strong> = number of significant figures / reproducibility (small random error). You can have either without the other:</p>
+<table style="border-collapse:collapse;width:100%">
+<tr><th style="border:0.75pt solid #9AA8B8;padding:4pt">Boiling point of water (true value 100.0 °C)</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Uncertainty</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Verdict</th></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Experiment 1: 99.5 °C</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">± 0.5 °C</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">more accurate, less precise</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Experiment 2: 98.15 °C</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">± 0.05 °C</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">less accurate, more precise</td></tr>
+</table>
+<p style="text-align:center"><img src="img/fig2_targets.png" style="max-width:100%;height:auto"/></p>
+
+<h2>5 · Recording uncertainty in raw data</h2>
+<p>Every raw reading carries an uncertainty, written as a range (±). The uncertainty is quoted to the <strong>same number of decimal places</strong> as the measurement. How to get it:</p>
+<table style="border-collapse:collapse;width:100%">
+<tr><th style="border:0.75pt solid #9AA8B8;padding:4pt">Instrument</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Rule</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Worked example</th></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Digital balance (2 d.p.)</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">uncertainty = smallest scale division (the last digit)</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">1.23 g ± 0.01 g</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Digital balance (3 d.p.)</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">same rule</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">1.233 g ± 0.001 g</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Analogue glassware (burette, thermometer)</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">uncertainty = ½ × smallest division</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">smallest division 0.1 cm<sup>3</sup> → 48.80 cm<sup>3</sup> ± 0.05 cm<sup>3</sup></td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Manufacturer-stated</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">use the stated value</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">as on the apparatus</td></tr>
+</table>
+<p>When one apparatus is used for a whole data set, put the uncertainty once in the column header (e.g. "Mass / g ± 0.001") instead of repeating it per cell. Some sources (reaction timing, endpoint judgement) are not quantifiable — note them as qualitative error sources in your evaluation instead.</p>
+
+<h2>6 · Propagating uncertainties in processed data</h2>
+<table style="border-collapse:collapse;width:100%">
+<tr><th style="border:0.75pt solid #9AA8B8;padding:4pt">Operation</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Propagate by</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Example</th></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Add / subtract</td><td style="border:0.75pt solid #9AA8B8;padding:4pt"><strong>sum the absolute uncertainties</strong></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">(24.200 ± 0.001) − (21.500 ± 0.001) = 2.700 ± 0.002 g</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Multiply / divide</td><td style="border:0.75pt solid #9AA8B8;padding:4pt"><strong>sum the percentage uncertainties</strong></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">see Practice Q5</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Raise to a power n <em>(AHL)</em></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">fractional uncertainty × n</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">(0.30 ± 0.0667)<sup>3</sup> → fractional 0.0667 × 3 = 0.20</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">n-th root <em>(AHL)</em></td><td style="border:0.75pt solid #9AA8B8;padding:4pt">fractional uncertainty ÷ n</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">mirror of powers</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Mean of repeats</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">uncertainty stays as in the component values</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">three ΔH trials ± kJ mol<sup>−1</sup> each → mean keeps ± same</td></tr>
+</table>
+<p><strong>Significant figures protocol for uncertainties:</strong> if the final percentage uncertainty ≥ 2%, quote it to 1 s.f.; if &lt; 2%, to no more than 2 s.f. Also know the difference between <em>percentage uncertainty</em> (precision of your own data) and <em>percentage error</em> (your result vs the literature/accepted value — used to judge validity in P1B evaluation questions).</p>
+
+<h2>7 · Graphing</h2>
+<p>The guide expects you to: plot with appropriate scales and axes (independent on x, dependent on y); draw <strong>lines or curves of best fit</strong> — never join dot-to-dot; interpret gradient, intercepts, changes in gradient, maxima/minima and areas; <strong>draw and interpret uncertainty bars</strong>; extrapolate and interpolate; apply the <strong>coefficient of determination R<sup>2</sup></strong> (AHL-friendly) to judge fit; and sketch unscaled graphs to describe trends qualitatively.</p>
+<p>With uncertainty bars, the gradient itself gets an uncertainty: draw the maximum-gradient and minimum-gradient lines through the bars ("lines of worst fit"). Then:</p>
+<p style="text-align:center"><em>final gradient = (max gradient + min gradient) / 2</em>&nbsp;&nbsp;&nbsp;<em>uncertainty = ½ (max − min)</em></p>
+<p style="text-align:center"><img src="img/fig1_gradient.png" style="max-width:100%;height:auto"/></p>
+<p>If one variable's uncertainty dwarfs the other's, take the total uncertainty from the larger alone — the smaller is negligible.</p>
+
+<h2>8 · How Tool 3 appears in Paper 1B</h2>
+<table style="border-collapse:collapse;width:100%">
+<tr><th style="border:0.75pt solid #9AA8B8;padding:4pt">Skill from this module</th><th style="border:0.75pt solid #9AA8B8;padding:4pt">Typical P1B command</th></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Reading data with units</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"State / identify the value of …" from a table or graph</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Appropriate precision</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"…giving your answer to an appropriate number of significant figures"</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Recording uncertainty</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"Deduce the uncertainty in the mass / volume / temperature"</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Propagation</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"Calculate the percentage uncertainty in the concentration"</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Percentage error</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"Compare with the accepted value and comment on the difference"</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Graphs</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"Draw a best-fit line", "comment on the trend / anomalous point", "estimate … at x = …"</td></tr>
+<tr><td style="border:0.75pt solid #9AA8B8;padding:4pt">Rates of change</td><td style="border:0.75pt solid #9AA8B8;padding:4pt">"Determine the rate at t = …" (tangent to a curve)</td></tr>
+</table>
+
+<h2>9 · Practice set</h2>
+<p><strong>Q1.</strong> State the number of significant figures in: (a) 48.80 cm<sup>3</sup> (b) 0.0015 mol (c) 3.5 × 10<sup>6</sup> J (d) 1.005 g.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:40pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q2.</strong> Convert: (a) 25 °C to K (b) 250 cm<sup>3</sup> to dm<sup>3</sup> (c) 0.103 g cm<sup>−3</sup> to g dm<sup>−3</sup> (d) 452 nm to m, in scientific notation.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:40pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q3.</strong> Write each reading with its uncertainty: (a) a two-decimal balance reads 0.95 g; (b) a three-decimal balance reads 23.226 g; (c) a thermometer with 1 °C divisions reads 21.0 °C; (d) a burette (0.1 cm<sup>3</sup> divisions) reads 22.30 cm<sup>3</sup>.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:55pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q4.</strong> Mass by difference. Crucible = 21.500 g ± 0.001 g; crucible + hydrated copper(II) sulfate = 24.200 g ± 0.001 g. Determine the mass of the sample and its absolute uncertainty.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:55pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q5.</strong> Concentration from mass and volume. m(solute) = 6.5 g ± 0.1 g; V(solution) = 63.10 cm<sup>3</sup> ± 0.05 cm<sup>3</sup>. Calculate the concentration in g cm<sup>−3</sup> (to an appropriate number of s.f.) and its total percentage uncertainty.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:70pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q6.</strong> Determining x in CuSO<sub>4</sub>·xH<sub>2</sub>O (links to Practical 9, Unit 1). Using a three-decimal balance: crucible = 21.500 g; crucible + hydrate = 24.200 g; after heating to constant mass = 23.226 g (Mr: CuSO<sub>4</sub> = 159.6, H<sub>2</sub>O = 18.02). Determine x, the absolute uncertainty in the mass of water lost, and the percentage uncertainty in x. Quote x appropriately.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:90pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p><strong>Q7.</strong> Rate from tabulated data. Magnesium + excess HCl, gas collected: t = 0, 10, 20, 30, 40, 50 s; V = 0, 28, 45, 58, 66, 70 cm<sup>3</sup>. (a) Determine the average rate over the first 10 s. (b) State, with a reason, how the rate changes with time. (c) On the grid, sketch the curve of V against t.</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:108pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+
+<h2>10 · Exit ticket</h2>
+<p>One sentence each: (1) When would you quote an answer to 1 s.f.? (2) Your titre repeats agree to ±0.05 cm<sup>3</sup> but differ from the literature by 3% — is that an uncertainty or an error, and which verdict does it support?</p>
+<table style="width:100%;border-collapse:collapse"><tr><td style="height:55pt;border:0.75pt solid #9AA8B8">&nbsp;</td></tr></table>
+<p style="font-size:9pt;color:#5A6C80"><em>Sources: IB Chemistry Guide 2025 (Tool 3, p.34–35); Chemistry Teacher Support Material (First assessment 2025), Mathematics chapter. Practice data adapted from the department practical framework (Books 1–4).</em></p>
+</div>
+</body>
+</html>
