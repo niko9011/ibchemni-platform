@@ -10,7 +10,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const publicLinks = [
     ["About & Reviews", "/about"],
     ["Question Hub", "/questions"],
-    ["Past Paper Questions", "/past-paper-questions"],
     ["Topical by Chapter", "/topical"],
     ["Full Past Papers", "/past-paper-sets"],
     ["Exam Sprint", "/exam-sprint"],

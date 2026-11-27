@@ -48,8 +48,8 @@ export default async function TopicalPage() {
     quizChapterIdsFor(p.id.startsWith("hl-") ? "HL" : "SL", p.id.split("-").slice(1).join("-"))
   )));
   const quizSrc = allow.length
-    ? `/ib-quiz-platform/index.html?code=${encodeURIComponent(buildQuizAccessCode(`Student ${user.name}`, allow))}#topic`
-    : "/ib-quiz-platform/index.html#topic";
+    ? `/ib-quiz-platform/index.html?entry=topical-units&code=${encodeURIComponent(buildQuizAccessCode(`Student ${user.name}`, allow))}#topic`
+    : "/ib-quiz-platform/index.html?entry=topical-units#topic";
 
   return (
     <main className="mx-auto max-w-7xl px-3 py-6 sm:px-5 sm:py-10">

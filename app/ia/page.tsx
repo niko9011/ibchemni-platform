@@ -47,7 +47,7 @@ export default function IaProgrammePage() {
         </p>
         <div className="mt-6 flex flex-wrap gap-4">
           <a href="/contact" className="min-h-12 rounded-full bg-blue px-6 py-3 text-sm font-bold text-white">Enquire about the IA programme</a>
-          <a href="/past-paper-questions" className="min-h-12 rounded-full border border-blue/20 bg-white px-6 py-3 text-sm font-bold text-muted">Try the question bank</a>
+          <a href="/topical" className="min-h-12 rounded-full border border-blue/20 bg-white px-6 py-3 text-sm font-bold text-muted">Try the question bank</a>
         </div>
       </section>
     </main>

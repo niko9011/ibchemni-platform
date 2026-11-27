@@ -36,12 +36,32 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
   }
 })();
 
+/* Entry modes: ?entry=... restricts the app to a subset of levels/papers
+   (used by the ibchemni personal-site embeds). Entries never include Pre-IB.
+   No entry parameter = full app, behaviour unchanged. */
+const ENTRY_CFG = {
+  "topical-units":   { levels: ["SL"], papers: ["MCQ", "P2"] },
+  "past-paper-sets": { levels: ["SLP", "HLP"], papers: ["MCQ", "P2"] },
+  "exam-sprint-p1b": { levels: ["SL"], papers: ["P1B"] },
+  "exam-sprint-p2":  { levels: ["SL"], papers: ["P2"] }
+};
+const ENTRY = (() => {
+  if (typeof location === "undefined") return null;
+  const e = new URLSearchParams(location.search).get("entry") || "";
+  const cfg = ENTRY_CFG[e];
+  return cfg ? { levels: cfg.levels.slice(), papers: cfg.papers.slice() } : null;
+})();
+if (ENTRY) {
+  if (ENTRY.levels.indexOf(state.browse.level) === -1) state.browse.level = ENTRY.levels[0];
+  if (ENTRY.papers.indexOf(state.browse.paper) === -1) state.browse.paper = ENTRY.papers[0];
+}
+
 /* ---------- Pre-IB topics (merged from the SL MCQ bank) ---------- */
 const PREIB_TOPICS = [
-  { id: "preib-stoich",   title: "Stoichiometry",     src: ["ch1"] },
-  { id: "preib-atoms",    title: "Atomic Structure",  src: ["ch2"] },
-  { id: "preib-periodic", title: "Periodic Trends",   src: ["ch3"] },
-  { id: "preib-bonding",  title: "Chemical Bonding",  src: ["ch4.1", "ch4.2", "ch4.3"] }
+  { id: "preib-stoich",   title: "Stoichiometry",     src: ["u1b"] },
+  { id: "preib-atoms",    title: "Atomic Structure",  src: ["u1a"] },
+  { id: "preib-periodic", title: "Periodic Trends",   src: ["u3"] },
+  { id: "preib-bonding",  title: "Chemical Bonding",  src: ["u2"] }
 ];
 const PREIB_CH = PREIB_TOPICS.map(t => ({
   id: t.id,
@@ -727,9 +747,9 @@ function renderHome() {
     </div>
     ${me ? `<div id="taskBox">${tasksHTML()}</div>` : ""}`;
 
-  const paperTabs = (LEVEL_PAPERS[level] || PAPERS).map(p =>
+  const paperTabs = (ENTRY ? ENTRY.papers : (LEVEL_PAPERS[level] || PAPERS)).map(p =>
     `<button class="tab${p === paper ? " on" : ""}" onclick="setPaper('${p}')">${paperLabel(level, p)}</button>`).join("");
-  const levelTabs = LEVELS.map(l =>
+  const levelTabs = (ENTRY ? ENTRY.levels : LEVELS).map(l =>
     `<button class="pill${l === level ? " on" : ""}" onclick="setLevel('${l}')">${LEVEL_LABELS[l] || l}</button>`).join("");
   const heading = `${LEVEL_LABELS[level] || level} · ${paperLabel(level, paper)}`;
   app.innerHTML = `
@@ -751,13 +771,14 @@ function renderHome() {
 
 function escHTML(s) { return String(s).replace(/[<>&]/g, c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c])); }
 function setLevel(l) {
+  if (ENTRY && ENTRY.levels.indexOf(l) === -1) return;
   state.browse.level = l;
-  const papers = LEVEL_PAPERS[l] || PAPERS;
-  if (papers.indexOf(state.browse.paper) === -1) state.browse.paper = "MCQ";
+  const papers = ENTRY ? ENTRY.papers : (LEVEL_PAPERS[l] || PAPERS);
+  if (papers.indexOf(state.browse.paper) === -1) state.browse.paper = ENTRY ? ENTRY.papers[0] : "MCQ";
   if (state.view !== "home") state.view = "home";
   render();
 }
-function setPaper(p) { state.browse.paper = p; if (state.view !== "home") state.view = "home"; render(); }
+function setPaper(p) { if (ENTRY && ENTRY.papers.indexOf(p) === -1) return; state.browse.paper = p; if (state.view !== "home") state.view = "home"; render(); }
 
 function openChapter(i) {
   const ch = activeChapters()[i];
