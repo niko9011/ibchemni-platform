@@ -6564,6 +6564,54 @@ const QUIZ_DATA = {
     },
     {
      "type": "mcq",
+     "img": "img/hch11/001.jpg",
+     "answer": 3,
+     "src": "11_HL_Summer_2017_Q34"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/004.jpg",
+     "answer": 0,
+     "src": "11_HL_Summer_2017_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/005.jpg",
+     "answer": 1,
+     "src": "12_HL_Summer_2017_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/007.jpg",
+     "answer": 3,
+     "src": "12_HL_Summer_2017_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/008.jpg",
+     "answer": 3,
+     "src": "10_HL_Winter_2017_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/010.jpg",
+     "answer": 2,
+     "src": "11_HL_Summer_2018_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/011.jpg",
+     "answer": 0,
+     "src": "11_HL_Summer_2018_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch11/012.jpg",
+     "answer": 3,
+     "src": "11_HL_Summer_2018_Q40"
+    },
+    {
+     "type": "mcq",
      "img": "img/hch20/001.jpg",
      "answer": 1,
      "src": "11_HL_Summer_2018_Q36"
@@ -6825,6 +6873,180 @@ const QUIZ_DATA = {
      "img": "img/hch20/095.jpg",
      "answer": 1,
      "src": "1_HL_Winter_2024_Q35"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/004.jpg",
+     "answer": 0,
+     "src": "11_HL_Summer_2019_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/006.jpg",
+     "answer": 2,
+     "src": "12_HL_Summer_2019_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/007.jpg",
+     "answer": 3,
+     "src": "12_HL_Summer_2019_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/009.jpg",
+     "answer": 2,
+     "src": "10_HL_Winter_2019_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/011.jpg",
+     "answer": 1,
+     "src": "10_HL_Winter_2020_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/012.jpg",
+     "answer": 1,
+     "src": "10_HL_Winter_2020_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/015.jpg",
+     "answer": 0,
+     "src": "11_HL_Summer_2021_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/016.jpg",
+     "answer": 3,
+     "src": "12_HL_Summer_2021_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/018.jpg",
+     "answer": 1,
+     "src": "12_HL_Summer_2021_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/020.jpg",
+     "answer": 2,
+     "src": "10_HL_Winter_2021_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/021.jpg",
+     "answer": 3,
+     "src": "10_HL_Winter_2021_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/022.jpg",
+     "answer": 0,
+     "src": "11_HL_Summer_2022_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/023.jpg",
+     "answer": 2,
+     "src": "11_HL_Summer_2022_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/024.jpg",
+     "answer": 2,
+     "src": "11_HL_Summer_2022_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/025.jpg",
+     "answer": 0,
+     "src": "12_HL_Summer_2022_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/027.jpg",
+     "answer": 3,
+     "src": "12_HL_Summer_2022_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/029.jpg",
+     "answer": 0,
+     "src": "10_HL_Winter_2022_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/030.jpg",
+     "answer": 1,
+     "src": "10_HL_Winter_2022_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/031.jpg",
+     "answer": 3,
+     "src": "10_HL_Winter_2022_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/033.jpg",
+     "answer": 1,
+     "src": "11_HL_Summer_2023_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/034.jpg",
+     "answer": 3,
+     "src": "11_HL_Summer_2023_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/036.jpg",
+     "answer": 3,
+     "src": "12_HL_Summer_2023_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/038.jpg",
+     "answer": 2,
+     "src": "11_HL_Winter_2023_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/039.jpg",
+     "answer": 0,
+     "src": "11_HL_Winter_2023_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/041.jpg",
+     "answer": 3,
+     "src": "11_HL_Summer_2024_Q39"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/042.jpg",
+     "answer": 1,
+     "src": "11_HL_Summer_2024_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/044.jpg",
+     "answer": 0,
+     "src": "12_HL_Summer_2024_Q40"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/045.jpg",
+     "answer": 1,
+     "src": "1_HL_Winter_2024_Q38"
+    },
+    {
+     "type": "mcq",
+     "img": "img/hch21/046.jpg",
+     "answer": 0,
+     "src": "1_HL_Winter_2024_Q39"
     }
    ]
   },
@@ -6840,6 +7062,12 @@ const QUIZ_DATA = {
      "img": "img/hp2q/HL_Winter_2023_Q1.jpg",
      "ms": "img/hp2ms/HL_Winter_2023_Q1.jpg",
      "src": "HL_Winter_2023_Q1"
+    },
+    {
+     "type": "p2",
+     "img": "img/hp2q/HL_Summer_2018_Q9.jpg",
+     "ms": "",
+     "src": "HL_Summer_2018_Q9"
     }
    ]
   },
