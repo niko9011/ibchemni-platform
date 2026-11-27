@@ -31,6 +31,10 @@ const paperLabel = (level, p) => isPastPaperLevel(level) ? ({ "MCQ": "Paper 1", 
       const obj = decodeAccess(q);
       if (obj && Array.isArray(obj.a) && (obj.a[0] !== "*" || obj.c === "TEACHER")) {
         localStorage.setItem("access", JSON.stringify({ cls: obj.c, allow: obj.a }));
+        /* embedded entries: carry the student's name from the platform identity,
+           so no second sign-in is ever asked inside the embed */
+        const m = /^Student (.+)$/.exec(obj.c || "");
+        if (m && localStorage.getItem("stuName") !== m[1]) localStorage.setItem("stuName", m[1]);
       }
     } catch (e) { /* invalid code: ignore, the normal code box still works */ }
   }
@@ -689,7 +693,9 @@ function renderHome() {
     ? `Signed in as <b>${escHTML(me.name)}</b> · <a class="tlink" onclick="openAccount()">My history</a> · <a class="tlink" onclick="signOut()">sign out</a>`
     : `<button class="btn-auth wide" onclick="openAccount()">Sign in with your school email</button>
        <div class="meta" style="margin-top:6px">Sign in to open the tasks your teacher sets for your class and to keep your results.</div>`;
-  const authBar = me
+  const authBar = ENTRY
+    ? ""
+    : me
     ? `<div class="authbar"><button class="btn-auth light" onclick="openAccount()">My history</button><button class="btn-auth light" onclick="signOut()">Sign out</button></div>`
     : `<div class="authbar"><button class="btn-auth" onclick="openAccount()">Sign in</button></div>`;
 
@@ -734,7 +740,11 @@ function renderHome() {
           <input type="text" id="accessInput" placeholder="Access code, e.g. IBQ.eyJjIjoiRFIyQSJ9.k3v2q" spellcheck="false">
           <button onclick="applyCode()">Unlock</button>
         </div></details>`;
-  const accBar = `
+  const accBar = ENTRY
+    ? `<div class="codebar"><div class="acc-status" id="accStatus">${acc
+        ? `Open for you: <b>${acc.allow[0] === "*" ? "all chapters" : acc.allow.length + " chapter(s)"}</b> — results are kept on this device.`
+        : `Chapters open here automatically once your teacher unlocks them for your account.`}</div></div>`
+    : `
     <div class="codebar">
       <div class="acc-status" id="accStatus">${me
         ? `Signed in to <b>${escHTML(me.cls || "your class")}</b> — tasks your teacher has set for your class are open below`
@@ -756,8 +766,10 @@ function renderHome() {
   <header class="site"><div class="inner">
     ${authBar}
     <div class="kicker">${QUIZ_DATA.course} · Topic practice &amp; past papers</div>
-    <h1>Choose your level and paper</h1>
-    <p>Real IB questions, by topic or as complete papers. Sign in with your school email to see the tasks your teacher sets.</p>
+    <h1>${ENTRY ? "Choose your chapter" : "Choose your level and paper"}</h1>
+    <p>${ENTRY
+      ? "Real IB questions by syllabus unit. Chapters unlocked for your account open below — no extra sign-in needed."
+      : "Real IB questions, by topic or as complete papers. Sign in with your school email to see the tasks your teacher sets."}</p>
   </div></header>
   <main class="wrap">
     <div class="lvlrow">${levelTabs}</div>
@@ -765,7 +777,7 @@ function renderHome() {
     ${accBar}
     <div class="listhead">${heading}${hasBank ? ` · ${total} questions` : ""}</div>
     ${cards}${emptyCard}
-    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.<br><a class="tlink" href="teacher.html">Teacher view</a></div>
+    <div class="footnote">Every question keeps its original diagram or structure, so figures stay exact. Your score is shown immediately after submission, with the correct answer for each question.${ENTRY ? "" : `<br><a class="tlink" href="teacher.html">Teacher view</a>`}</div>
   </main>`;
 }
 
