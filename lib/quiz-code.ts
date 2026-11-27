@@ -1,8 +1,8 @@
 /* Access-code bridge between the platform (purchased chapters) and the embedded
    ib-quiz-platform app. The quiz unlocks chapters from an IBQ code, so the server
    builds one for the signed-in student from their active enrollments.
-   Quiz chapter ids: SL topical = new-syllabus units (u1a..u10, p2u*), HL topical = hch*/hp2ch*,
-   plus the teacher's own topical sets (ns*/nr*/no*, with a "-sq" twin for the structured part). */
+   Quiz chapter ids: SL topical = new-syllabus units (u1a..u10, p2u…), HL topical = hch…/hp2ch…,
+   plus the teacher's own topical sets (ns…, nr…, no…, with a "-sq" twin for the structured part). */
 
 const SUBJECT_TO_QUIZ_SL: Record<string, string[]> = {
   "matter-and-atomic-structure": ["u1a", "p2u1a", "ns1a", "ns1a-sq"],
