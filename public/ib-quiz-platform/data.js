@@ -17828,8 +17828,19 @@ const QUIZ_DATA = {
      "img": "img/nq_p1b2026/q36.jpg",
      "src": "25M.1B.SL.TZ3.2",
      "ms": "img/nq_p1b2026/ms36.jpg"
-    }
-   ]
+    },
+{
+     "type": "p2",
+     "img": "img/nq_p1b2026/q46.jpg",
+     "src": "SPEC.1B.SL.TZ0.1",
+     "ms": "img/nq_p1b2026/ms46.jpg"
+   },
+{
+     "type": "p2",
+     "img": "img/nq_p1b2026/q47.jpg",
+     "src": "SPEC.1B.SL.TZ0.2",
+     "ms": "img/nq_p1b2026/ms47.jpg"
+   }]
   },
   {
    "id": "p1bhl",
@@ -18107,8 +18118,25 @@ const QUIZ_DATA = {
      "img": "img/nq_p1b2026/q36.jpg",
      "src": "25M.1B.SL.TZ3.2",
      "ms": "img/nq_p1b2026/ms36.jpg"
-    }
-   ]
+    },
+{
+     "type": "p2",
+     "img": "img/nq_p1b2026/q48.jpg",
+     "src": "SPEC.1B.HL.TZ0.1",
+     "ms": "img/nq_p1b2026/ms48.jpg"
+   },
+{
+     "type": "p2",
+     "img": "img/nq_p1b2026/q49.jpg",
+     "src": "SPEC.1B.HL.TZ0.2",
+     "ms": "img/nq_p1b2026/ms49.jpg"
+   },
+{
+     "type": "p2",
+     "img": "img/nq_p1b2026/q50.jpg",
+     "src": "SPEC.1B.HL.TZ0.3",
+     "ms": "img/nq_p1b2026/ms50.jpg"
+   }]
   },
   {
    "id": "ns1a",
